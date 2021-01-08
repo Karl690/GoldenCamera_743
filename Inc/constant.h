@@ -3,3 +3,4 @@
 #define FRAME_WIDTH 160
 #define FRAME_HEIGHT 120
 
+#define SYSTICKS_PER_SECOND 1000//1000 int per second

@@ -91,7 +91,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  SysTick_Config(SystemCoreClock / SYSTICKS_PER_SECOND);
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -110,25 +110,25 @@ int main(void)
   SystemInfo.mcuVersion = HAL_GetHalVersion();
   SystemInfo.mcuDeviceID = HAL_GetDEVID();
   SystemInfo.mcuRevisionID = HAL_GetREVID();
-
-
-  /* USER CODE END 2 */
   LCD_Init();
-
   LCD_Logo();
-  Camera_Init_Device(&hi2c1, FRAMESIZE_QQVGA);
-  sprintf((char *)&text, "LongPress K1 to Run");
-  LCD_ShowString(40, 58, ST7735Ctx.Width, 16, 12, text);
 
-  sprintf((char *)&text, "GoldenCAM sw %d.%03d", SystemInfo.softwareMajorVersion, SystemInfo.softwareMinorVersion);
+  Camera_Init_Device(&hi2c1, FRAMESIZE_QQVGA);
+  sprintf((char *)&text, "SW %d.%03d   ", SOFTWARE_MAJOR_REVISION, SOFTWARE_MINOR_REVISION);
   LCD_ShowString(40, 2, ST7735Ctx.Width, 16, 12, text);
+
+  sprintf((char *)&text, "LongPress K1 to Run");
+  LCD_ShowString(50, 58, ST7735Ctx.Width, 16, 12, text);
 
   while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET)
   {
-	  HAL_Delay(100);
+	  HAL_Delay(10);
   }
 
   HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)&DCMI_BUF, FRAME_WIDTH * FRAME_HEIGHT * 2 / 4);
+
+  /* USER CODE END 2 */
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
