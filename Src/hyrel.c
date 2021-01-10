@@ -58,7 +58,7 @@ const PFUNC F10HZ[NUM_10HZ] =
 		Spare,//sendUpdateToHost,
 		Spare,//checkBlockingWaits,
 		Spare,//EdgeTriggerSendResults, // move into simple_work if space needed
-		Spare,//checkForCompletedAbort,
+		BlinkLed,//checkForCompletedAbort,
 		Spare,//ReportXYZLocation,
 		Spare,
 		Spare,
