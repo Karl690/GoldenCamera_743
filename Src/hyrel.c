@@ -69,7 +69,7 @@ const PFUNC F1HZ[NUM_1HZ] =
 {
 		OhNoMrBill,
 		BlinkLed,
-		Spare,
+		TestVCP,
 		Spare,
 		Spare,
 		Spare,
@@ -98,7 +98,10 @@ void Heartbeat(void)
 {
 	//TogglePin(HeartBeat_Port,HeartBeat_Pin);
 }
-
+void TestVCP(void){
+	char Buf[20]  = "USB VCP IS OK\n";
+	CDC_Transmit_FS(Buf, strlen(Buf));
+}
 
 //This function is called thousands of times per second as a callback function of SysTick.
 void FUNC_SystickCallback()

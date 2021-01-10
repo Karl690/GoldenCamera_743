@@ -29,6 +29,7 @@ void Spare (void);
 void OhNoMrBill(void);
 void Heartbeat(void);
 void BlinkLed();
+void TestVCP(void);
 void ProcessEverySlice(void);
 void MainControlLoop(void	);
 #endif /* SRC_LED_H_ */
