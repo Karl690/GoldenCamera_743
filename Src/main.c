@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "dcmi.h"
 #include "dma.h"
 #include "i2c.h"
@@ -53,9 +54,12 @@
 
 /* USER CODE BEGIN PV */
 SYSTEMINFO SystemInfo = {0};
-uint16_t DCMI_BUF[FRAME_WIDTH][FRAME_HEIGHT];
+uint16_t DCMI_BUF[FRAME_HEIGHT][FRAME_WIDTH];
+uint16_t LCD_BUF[LCD_HEIGHT][LCD_WIDTH];
 uint32_t DCMI_FrameIsReady;
+uint8_t WAVE_BUF[FRAME_WIDTH] = {0};
 uint32_t Camera_FPS=0;
+uint16_t WAVE_POS = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -103,6 +107,8 @@ int main(void)
   MX_SPI4_Init();
   MX_TIM1_Init();
   MX_USB_DEVICE_Init();
+  MX_SPI2_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   uint8_t text[20];
 
@@ -113,7 +119,10 @@ int main(void)
   SystemInfo.mcuDeviceID = HAL_GetDEVID();
   SystemInfo.mcuRevisionID = HAL_GetREVID();
   LCD_Init();
+  //LCDx_Init();
   LCD_Logo();
+  //LCDx_Hyrellogo();
+
 
   Camera_Init_Device(&hi2c1, FRAMESIZE_QQVGA);
   sprintf((char *)&text, "SW %d.%03d   ", SOFTWARE_MAJOR_REVISION, SOFTWARE_MINOR_REVISION);
@@ -126,27 +135,54 @@ int main(void)
   {
 	  HAL_Delay(10);
   }
-
+#ifdef _HAS_CAMERA_
   HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)&DCMI_BUF, FRAME_WIDTH * FRAME_HEIGHT * 2 / 4);
-
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint16_t AD_RES = 0;
+  uint16_t raw;
+#ifndef _HAS_CAMERA_
+  ST7735_FillRect(&st7735_pObj, 0, 0, ST7735Ctx.Width, 80, 0x000);
+#endif
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  HAL_ADC_Start(&hadc1);
+	  HAL_ADC_PollForConversion(&hadc1, 10);
+	  raw = HAL_ADC_GetValue(&hadc1);
+	  if(WAVE_POS >= ST7735Ctx.Width) WAVE_POS = 0;
+
+	  WAVE_BUF[WAVE_POS] = raw;
+	  HAL_ADC_Stop(&hadc1);
+#ifdef _HAS_CAMERA_
 	  if (DCMI_FrameIsReady)
 	  {
 		  DCMI_FrameIsReady = 0;
-
+		  //CDx_Hyrellogo();
 		  ST7735_FillRGBRect(&st7735_pObj,0,0,(uint8_t *)&DCMI_BUF[20][0], ST7735Ctx.Width, 80);
-		  sprintf((char *)&text,"%dFPS",Camera_FPS);
+		  sprintf((char *)&text,"%d", raw);
 		  LCD_ShowString(5,5,60,16,12,text);
 		  HAL_Delay(10);
 	  }
+#else
+	  //ST7735_FillRect(&st7735_pObj, 0, 0, ST7735Ctx.Width, ST7735Ctx.Height, 0x00);
+  	  //ST7735_DrawHLine(&st7735_pObj, 0, ST7735Ctx.Height/2, ST7735Ctx.Width, 0x07E0);
+  	  //ST7735_DrawVLine(&st7735_pObj, ST7735Ctx.Width / 2, 0, ST7735Ctx.Height, 0x07E0);
+  	  GuiDrawADC(LCD_BUF, WAVE_BUF, WAVE_POS);
+	  //DrawWave(WAVE_BUF, WAVE_POS, ST7735Ctx.Width);
+  	  ST7735_FillRGBRect(&st7735_pObj,0,0,(uint8_t *)&LCD_BUF[0][0], ST7735Ctx.Width, ST7735Ctx.Height);
+	  sprintf((char *)&text,"%d", raw);
+	  LCD_ShowString(5,5,160,16,12,text);
+	  HAL_Delay(10);
+	  WAVE_POS ++;
+#endif
+	  // Start ADC Conversion
+
   }
   /* USER CODE END 3 */
 }
@@ -169,6 +205,9 @@ void SystemClock_Config(void)
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
 
   while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
+  /** Macro to configure the PLL clock source
+  */
+  __HAL_RCC_PLL_PLLSOURCE_CONFIG(RCC_PLLSOURCE_HSE);
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -206,11 +245,22 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SPI4|RCC_PERIPHCLK_I2C1
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SPI4|RCC_PERIPHCLK_SPI2
+                              |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C1
                               |RCC_PERIPHCLK_USB;
+  PeriphClkInitStruct.PLL2.PLL2M = 2;
+  PeriphClkInitStruct.PLL2.PLL2N = 32;
+  PeriphClkInitStruct.PLL2.PLL2P = 2;
+  PeriphClkInitStruct.PLL2.PLL2Q = 2;
+  PeriphClkInitStruct.PLL2.PLL2R = 2;
+  PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_3;
+  PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
+  PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
+  PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL;
   PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_D2PCLK1;
   PeriphClkInitStruct.I2c123ClockSelection = RCC_I2C123CLKSOURCE_D2PCLK1;
   PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
+  PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL2;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
