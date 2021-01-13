@@ -7,13 +7,13 @@
 
 #include "gui.h"
 #include "constant.h"
-void GuiDrawADC(uint16_t* lcd_buf, uint8_t* wave_buf, uint16_t pos)
+void GuiDrawADC(uint16_t* lcd_buf, uint8_t* wave_buf, float scale)
 {
 	GuiReset(lcd_buf, 0x6101);
-
-	GuiDrawWave(lcd_buf, wave_buf, pos, 0xE707); //blue
+	uint16_t pos = 0;
+	GuiDrawWave(lcd_buf, wave_buf, pos, scale, 0xE707); //blue
 	GuiDrawAxis(lcd_buf, 0x440B);
-	GuiDrawHLine(lcd_buf, 0, LCD_HEIGHT/2,LCD_WIDTH, 0x03F8); //Red
+	//GuiDrawHLine(lcd_buf, 0, LCD_HEIGHT/2,LCD_WIDTH, 0x03F8); //Red
 }
 void GuiReset(uint16_t* lcd_buf, uint16_t Color) {
 	for(int i = 0; i < LCD_HEIGHT; i ++ )
@@ -41,32 +41,35 @@ int32_t GuiDrawRectangle(uint16_t* lcd_buf, uint32_t x1, uint32_t y1, uint32_t x
 	res &= GuiDrawLine(lcd_buf, x2, y1, x1, y1, Color);
 	return res;
 }
-void GuiDrawWave(uint16_t* lcd_buf, uint8_t* wave_buf, uint16_t pos, uint16_t Color)
+void GuiDrawWave(uint16_t* lcd_buf, uint8_t* wave_buf, uint16_t pos, float scale, uint16_t Color)
 {
 
 	int16_t x = LCD_WIDTH-1;
 	uint8_t y = 0;
-	uint16_t index = pos;
 	uint16_t end_pos = pos + 1;
 	if(end_pos >= LCD_WIDTH) end_pos = 0;
 	uint16_t prev_y = 0;
 	int16_t prev_x = x;
-	uint8_t IsFirst = 1;
-	while(1) {
-		if(x < 0) break;
-		if(index == 0) index = LCD_WIDTH - 1;
-		if(index == end_pos)  break;
-		y = (uint8_t)(LCD_HEIGHT - (wave_buf[index]) /256.0 * LCD_HEIGHT) ;
-		if(!IsFirst) {
-			GuiDrawLine(lcd_buf, prev_x, prev_y, x, y, Color);
-		}else
-			IsFirst = 0;
+	float original_scale = LCD_WIDTH/(float)ADC_SAMPLE_SIZE;
 
-		index --;
-		x --;
+	for(int i = 0; i < ADC_SAMPLE_SIZE; i ++) {
+		y = (uint8_t)(LCD_HEIGHT - (wave_buf[i]) /256.0 * LCD_HEIGHT) ;
+		x = i * original_scale * 1;
+		if(i != 0) GuiDrawLine(lcd_buf, prev_x, prev_y, x, y, Color);
 		prev_y = y;
 		prev_x = x;
 	}
+#ifdef _NNN_
+	for(int x = 0; x < LCD_WIDTH; x ++ ) {
+		if(x + pos >= ADC_SAMPLE_SIZE) break;
+		y = (uint8_t)(LCD_HEIGHT - (wave_buf[x+pos]) /256.0 * LCD_HEIGHT) ;
+		if(x > 0) {
+			GuiDrawLine(lcd_buf, prev_x, prev_y, x, y, Color);
+		}
+		prev_y = y;
+		prev_x = x;
+	}
+#endif
 }
 
 
@@ -83,7 +86,7 @@ int32_t GuiDrawVLine(uint16_t* lcd_buf, uint32_t Xpos, uint32_t Ypos, uint32_t L
   {
     for(counter = 0; counter < Length; counter++)
     {
-    	if(Ypos + counter > LCD_HEIGHT) {
+    	if(Ypos + counter >= LCD_HEIGHT) {
     		ret = GUI_ERROR;
     		break;
     	}
@@ -108,7 +111,7 @@ int32_t GuiDrawHLine(uint16_t* lcd_buf, uint32_t Xpos, uint32_t Ypos, uint32_t L
   {
     for(counter = 0; counter < Length; counter++)
     {
-    	if(Xpos + counter > LCD_WIDTH) {
+    	if(Xpos + counter >= LCD_WIDTH) {
     		ret = GUI_ERROR;
     		break;
     	}
@@ -123,6 +126,11 @@ int32_t GuiDrawLine(uint16_t* lcd_buf, uint32_t x1, uint32_t y1, uint32_t x2, ui
 {
 	int32_t ret = GUI_OK;
 	float m = 0;
+	if((x2 - x1 == 0) && (y2 - y1 == 0)) {
+		if(x2 >= 0 && x2 < LCD_WIDTH && y2 >= 0 && y2 < LCD_HEIGHT) {
+			lcd_buf[y2 * LCD_WIDTH + x2] = Color;
+		}
+	}
 	if(x2 - x1 == 0) {
 		GuiDrawVLine(lcd_buf, x1, _MIN(y1, y2), _ABS((int32_t)(y1 - y2)), Color);
 		return ret;
@@ -135,6 +143,7 @@ int32_t GuiDrawLine(uint16_t* lcd_buf, uint32_t x1, uint32_t y1, uint32_t x2, ui
 	uint16_t y = 0;
 	xstart = _MIN(x1, x2);
 	xend = _MAX(x1, x2);
+
 	for(uint32_t i = xstart; i < xend; i ++)
 	{
 		if(i < 0) break;

@@ -7,7 +7,8 @@
 #include "main.h"
 #include "pins.h"
 #include "hyrel.h"
-
+#include "constant.h"
+#include <math.h>
 byte 						Tick1000hzCounter = 0;
 byte 						Tick100hzCounter = 0;
 byte 						Tick10hzCounter = 0;
@@ -15,6 +16,7 @@ byte 						Tick1hzCounter = 0;
 uint16_t                    ExtendedSliceTimeNeeded = 0;   // down counter of extra slice times needed
 uint32_t                    Seconds = 0;               // needed for heartbeat (number of seconds since boot)
 uint16_t                    SliceCnt = 0;              // current slice being processed
+uint16_t 					Alpha = 0;
 unsigned 					GlobalSync = 1;//causes all timers to reset and synchronize, makes all hot heads on canbus time toghether
 _Bool                     	CanImmediateRxIsAvail; // flag to indicate an immediate can message is ready to be processed
 
@@ -40,7 +42,7 @@ const PFUNC F1000HZ[NUM_1000HZ] =
 const PFUNC F100HZ[NUM_100HZ] =
 {
 		OhNoMrBill,             // can't use slice 0 and this is time slot to execute the next slower slice
-		Spare,
+		GenerateDacSignal,
 		Spare,
 		Spare,
 		Spare,
@@ -91,6 +93,14 @@ void OhNoMrBill(void)
 }
 void BlinkLed(void){
 	TogglePin(PE3_HeartbeatLed_GPIO_Port, PE3_HeartbeatLed_Pin);
+}
+
+
+void GenerateDacSignal() {
+	//extern DAC_HandleTypeDef hdac1;
+	//hdac1.Instance->DHR12R1 = sin(PI * Alpha / 180.0) * 100;
+	Alpha ++;
+	if(Alpha == 360) Alpha = 0;
 }
 ////////////////////////////////////////////////////////////////////////////////
 

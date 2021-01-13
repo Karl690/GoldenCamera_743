@@ -6,7 +6,10 @@
 #define LCD_HEIGHT 80
 #define SYSTICKS_PER_SECOND 1000//1000 int per second
 
+#define ADC_SAMPLE_SIZE 1024
 
 #define _ABS(a) ((a > 0? a: -1 * a))
 #define _MIN(a, b) (a > b? b: a)
 #define _MAX(a, b) (a > b? a: b)
+
+#define PI 3.141592

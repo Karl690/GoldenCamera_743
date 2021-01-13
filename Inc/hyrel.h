@@ -27,6 +27,7 @@ typedef enum {
 void FUNC_SystickCallback();
 void Spare (void);
 void OhNoMrBill(void);
+void GenerateDacSignal(void);
 void Heartbeat(void);
 void BlinkLed();
 void TestVCP(void);
