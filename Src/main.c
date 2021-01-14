@@ -35,6 +35,7 @@
 #include "lcd.h"
 #include "constant.h"
 #include "systeminfo.h"
+#include "gui.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,10 +61,12 @@ uint16_t DCMI_Buf[FRAME_HEIGHT][FRAME_WIDTH];
 uint32_t Camera_FPS=0;
 uint32_t DCMI_FrameIsReady;
 #else
-float ADC_ViewScale = 1.0;
-uint8_t ADC_Buf[ADC_SAMPLE_SIZE] = {0};
-uint8_t ADC_DoneFlag = 0;
-
+float ADC_WaveScale = 1.0;
+uint16_t ADC_WavePos = 0;
+uint8_t ADC1_Buf[ADC_SAMPLE_SIZE] = {0};
+uint8_t ADC2_Buf[ADC_SAMPLE_SIZE] = {0};
+uint8_t ADC1_DoneFlag = 0;
+uint8_t ADC2_DoneFlag = 0;
 uint32_t Wave_LUT[128] = {
     2048, 2149, 2250, 2350, 2450, 2549, 2646, 2742, 2837, 2929, 3020, 3108, 3193, 3275, 3355,
     3431, 3504, 3574, 3639, 3701, 3759, 3812, 3861, 3906, 3946, 3982, 4013, 4039, 4060, 4076,
@@ -142,6 +145,7 @@ int main(void)
   MX_ADC1_Init();
   MX_DAC1_Init();
   MX_TIM2_Init();
+  MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
   uint8_t text[20];
 
@@ -156,8 +160,9 @@ int main(void)
   LCD_Logo();
   //LCDx_Hyrellogo();
 
-
+#ifdef _HAS_CAMERA_
   Camera_Init_Device(&hi2c1, FRAMESIZE_QQVGA);
+#endif
   sprintf((char *)&text, "SW %d.%03d   ", SOFTWARE_MAJOR_REVISION, SOFTWARE_MINOR_REVISION);
   LCD_ShowString(40, 2, ST7735Ctx.Width, 16, 12, text);
 
@@ -171,8 +176,8 @@ int main(void)
 #ifdef _HAS_CAMERA_
   HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)&DCMI_Buf, FRAME_WIDTH * FRAME_HEIGHT * 2 / 4);
 #endif
-  HAL_ADC_Start_DMA(&hadc1, ADC_Buf, ADC_SAMPLE_SIZE);
-  //HAL_DAC_Start(&hdac1,DAC_CHANNEL_2);
+  HAL_ADC_Start_DMA(&hadc1, ADC1_Buf, ADC_SAMPLE_SIZE);
+  HAL_ADC_Start_DMA(&hadc2, ADC2_Buf, ADC_SAMPLE_SIZE);
   HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_2, (uint32_t*)Pulse_LUT, 128, DAC_ALIGN_8B_R);
   HAL_TIM_Base_Start(&htim2);
   /* USER CODE END 2 */
@@ -199,14 +204,21 @@ int main(void)
 		  HAL_Delay(10);
 	  }
 #else
-	  if(HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET) {
-		  if(ADC_DoneFlag == 1 ) {
-			  GuiDrawADC(LCD_BUF, ADC_Buf, ADC_ViewScale);
-			  ST7735_FillRGBRect(&st7735_pObj,0,0,(uint8_t *)&LCD_BUF[0][0], ST7735Ctx.Width, ST7735Ctx.Height);
-			  sprintf((char *)&text,"%d", ADC_Buf[0]);
-			  LCD_ShowString(120,5,60,16,12,text);
-			  ADC_DoneFlag = 0;
+	  if(HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET)
+	  {
+		  GuiReset(LCD_BUF, GUI_COLOR_BACKGROUND);
+		  if(ADC1_DoneFlag == 1 ) {
+			  GuiDrawWave(LCD_BUF, ADC1_Buf, ADC_WavePos, ADC_WaveScale, GUI_COLOR_ADC_CHANNEL_01);
+			  ADC1_DoneFlag = 0;
 		  }
+
+		  if(ADC2_DoneFlag == 1 ) {
+			  GuiDrawWave(LCD_BUF, ADC2_Buf, ADC_WavePos, ADC_WaveScale, GUI_COLOR_ADC_CHANNEL_02);
+			  ADC2_DoneFlag = 0;
+		  }
+		  GuiDrawAxis(LCD_BUF, GUI_COLOR_AXIS);
+		  ST7735_FillRGBRect(&st7735_pObj,0,0,(uint8_t *)&LCD_BUF[0][0], ST7735Ctx.Width, ST7735Ctx.Height);
+
 	  }
 	  HAL_Delay(1);
 
@@ -316,7 +328,9 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 #endif
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-	ADC_DoneFlag = 1;
+	if(hadc == &hadc1) ADC1_DoneFlag = 1;
+	else if(hadc == &hadc2) ADC2_DoneFlag = 1;
+
 }
 
 /* USER CODE END 4 */

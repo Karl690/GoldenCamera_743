@@ -50,6 +50,12 @@ void MX_DAC1_Init(void)
   {
     Error_Handler();
   }
+  /** Configure Triangle wave generation on DAC OUT2
+  */
+  if (HAL_DACEx_TriangleWaveGenerate(&hdac1, DAC_CHANNEL_2, DAC_TRIANGLEAMPLITUDE_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
 }
 

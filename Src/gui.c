@@ -7,14 +7,7 @@
 
 #include "gui.h"
 #include "constant.h"
-void GuiDrawADC(uint16_t* lcd_buf, uint8_t* wave_buf, float scale)
-{
-	GuiReset(lcd_buf, 0x6101);
-	uint16_t pos = 0;
-	GuiDrawWave(lcd_buf, wave_buf, pos, scale, 0xE707); //blue
-	GuiDrawAxis(lcd_buf, 0x440B);
-	//GuiDrawHLine(lcd_buf, 0, LCD_HEIGHT/2,LCD_WIDTH, 0x03F8); //Red
-}
+
 void GuiReset(uint16_t* lcd_buf, uint16_t Color) {
 	for(int i = 0; i < LCD_HEIGHT; i ++ )
 	{
