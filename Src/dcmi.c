@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : DCMI.c
-  * Description        : This file provides code for the configuration
-  *                      of the DCMI instances.
+  * @file    dcmi.c
+  * @brief   This file provides code for the configuration
+  *          of the DCMI instances.
   ******************************************************************************
   * @attention
   *

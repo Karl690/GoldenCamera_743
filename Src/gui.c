@@ -52,17 +52,6 @@ void GuiDrawWave(uint16_t* lcd_buf, uint8_t* wave_buf, uint16_t pos, float scale
 		prev_y = y;
 		prev_x = x;
 	}
-#ifdef _NNN_
-	for(int x = 0; x < LCD_WIDTH; x ++ ) {
-		if(x + pos >= ADC_SAMPLE_SIZE) break;
-		y = (uint8_t)(LCD_HEIGHT - (wave_buf[x+pos]) /256.0 * LCD_HEIGHT) ;
-		if(x > 0) {
-			GuiDrawLine(lcd_buf, prev_x, prev_y, x, y, Color);
-		}
-		prev_y = y;
-		prev_x = x;
-	}
-#endif
 }
 
 
@@ -70,21 +59,12 @@ int32_t GuiDrawVLine(uint16_t* lcd_buf, uint32_t Xpos, uint32_t Ypos, uint32_t L
 {
   int32_t ret = GUI_OK;
   uint32_t counter;
-
-  if((Ypos + Length) > LCD_HEIGHT)
+  if(Xpos >= LCD_WIDTH) return GUI_ERROR;
+  for(counter = 0; counter < Length; counter++)
   {
-	  ret = GUI_ERROR;
-  }
-  else
-  {
-    for(counter = 0; counter < Length; counter++)
-    {
-    	if(Ypos + counter >= LCD_HEIGHT) {
-    		ret = GUI_ERROR;
-    		break;
-    	}
-    	lcd_buf[(Ypos + counter) * LCD_WIDTH + Xpos] = Color;
-	}
+	  if(Ypos + counter < LCD_HEIGHT) {
+		  lcd_buf[(Ypos + counter) * LCD_WIDTH + Xpos] = Color;
+	  }
   }
 
   return ret;
@@ -95,21 +75,13 @@ int32_t GuiDrawHLine(uint16_t* lcd_buf, uint32_t Xpos, uint32_t Ypos, uint32_t L
 {
   int32_t ret = GUI_OK;
   uint32_t counter;
-
-  if((Xpos + Length) > LCD_WIDTH)
+  if(Ypos >= LCD_HEIGHT) return GUI_ERROR;
+  for(counter = 0; counter < Length; counter++)
   {
-	  ret = GUI_ERROR;
-  }
-  else
-  {
-    for(counter = 0; counter < Length; counter++)
-    {
-    	if(Xpos + counter >= LCD_WIDTH) {
-    		ret = GUI_ERROR;
-    		break;
-    	}
-    	lcd_buf[Ypos * LCD_WIDTH + (Xpos + counter)] = Color;
-	}
+	  if(Xpos + counter < LCD_WIDTH)
+	  {
+		  lcd_buf[Ypos * LCD_WIDTH + (Xpos + counter)] = Color;
+	  }
   }
 
   return ret;
@@ -124,13 +96,14 @@ int32_t GuiDrawLine(uint16_t* lcd_buf, uint32_t x1, uint32_t y1, uint32_t x2, ui
 			lcd_buf[y2 * LCD_WIDTH + x2] = Color;
 		}
 	}
-	if(x2 - x1 == 0) {
+	if(x2 - x1 == 0 ) {
 		GuiDrawVLine(lcd_buf, x1, _MIN(y1, y2), _ABS((int32_t)(y1 - y2)), Color);
 		return ret;
 	}else if(y2 - y1 == 0) {
 		GuiDrawHLine(lcd_buf, _MIN(x1, x2), y1, _ABS((int32_t)(x1 - x2)), Color);
 		return ret;
 	}
+#ifndef _NN_
 	m = (y2- y1) /(float)(x2 - x1);
 	uint32_t xstart, xend;
 	uint16_t y = 0;
@@ -148,5 +121,6 @@ int32_t GuiDrawLine(uint16_t* lcd_buf, uint32_t x1, uint32_t y1, uint32_t x2, ui
 		}
 
 	}
+#endif
 	return ret;
 }

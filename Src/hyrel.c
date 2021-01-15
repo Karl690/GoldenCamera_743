@@ -60,7 +60,7 @@ const PFUNC F10HZ[NUM_10HZ] =
 		Spare,//sendUpdateToHost,
 		Spare,//checkBlockingWaits,
 		Spare,//EdgeTriggerSendResults, // move into simple_work if space needed
-		BlinkLed,//checkForCompletedAbort,
+		Spare,//BlinkLed,//checkForCompletedAbort,
 		Spare,//ReportXYZLocation,
 		Spare,
 		Spare,
@@ -70,8 +70,8 @@ const PFUNC F10HZ[NUM_10HZ] =
 const PFUNC F1HZ[NUM_1HZ] =
 {
 		OhNoMrBill,
-		BlinkLed,
-		TestVCP,
+		Spare,//BlinkLed,
+		Spare, //TestVCP,
 		Spare,
 		Spare,
 		Spare,
