@@ -63,11 +63,12 @@ uint32_t DCMI_FrameIsReady;
 #else
 float ADC_WaveScale = 1.0;
 uint16_t ADC_WavePos = 0;
-uint8_t ADC1_Buf[ADC_SAMPLE_SIZE] = {0};
-uint8_t ADC2_Buf[ADC_SAMPLE_SIZE] = {0};
+uint8_t ADC1_Buf[ADC_SAMPLE_SIZE + 3] = {0};
+uint8_t ADC2_Buf[ADC_SAMPLE_SIZE + 3] = {0};
 uint8_t ADC1_DoneFlag = 0;
 uint8_t ADC2_DoneFlag = 0;
 uint32_t ADC1_SampleRate = 10000;
+uint8_t IsRequestSendAdcData = 0;
 uint32_t Wave_LUT[128] = {
     2048, 2149, 2250, 2350, 2450, 2549, 2646, 2742, 2837, 2929, 3020, 3108, 3193, 3275, 3355,
     3431, 3504, 3574, 3639, 3701, 3759, 3812, 3861, 3906, 3946, 3982, 4013, 4039, 4060, 4076,
@@ -132,7 +133,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-  SysTick_Config(SystemCoreClock / SYSTICKS_PER_SECOND);
+  //SysTick_Config(SystemCoreClock / SYSTICKS_PER_SECOND);
 
   /* USER CODE END SysInit */
 
@@ -179,7 +180,10 @@ int main(void)
 #ifdef _HAS_CAMERA_
   HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)&DCMI_Buf, FRAME_WIDTH * FRAME_HEIGHT * 2 / 4);
 #endif
-  HAL_ADC_Start_DMA(&hadc1, ADC1_Buf, ADC_SAMPLE_SIZE);
+  ADC1_Buf[0] = 'A';
+  ADC1_Buf[1] = 'D';
+  ADC1_Buf[2] = 'C';
+  HAL_ADC_Start_DMA(&hadc1, &ADC1_Buf[3], ADC_SAMPLE_SIZE);
   HAL_TIM_Base_Start(&htim6);
   HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_2, (uint32_t*)Pulse_LUT, 128, DAC_ALIGN_8B_R);
   HAL_TIM_Base_Start(&htim2);
@@ -218,7 +222,7 @@ int main(void)
 
 		  GuiDrawAxis(LCD_BUF, GUI_COLOR_AXIS);
 		  ST7735_FillRGBRect(&st7735_pObj,0,0,(uint8_t *)&LCD_BUF[0][0], ST7735Ctx.Width, ST7735Ctx.Height);
-		  ADC1_SampleRate  =  SystemCoreClock / (float)(htim6.Init.Prescaler * htim6.Init.Period) ;
+		  ADC1_SampleRate  =  GetAdcFrequence(); //SystemCoreClock / (float)(htim6.Init.Prescaler * htim6.Init.Period) ;
 		  sprintf(text, "SR: %dHz", ADC1_SampleRate);
 		  LCD_ShowString(10,10, ST7735Ctx.Width, 16, 12, text);
 	  }
@@ -317,7 +321,22 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 }
 #endif
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+
+uint32_t g_timerTick = 0;
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+	if(IsRequestSendAdcData)
+	{
+		uint32_t threshhold = SystemCoreClock / ((htim6.Init.Prescaler * htim6.Init.Period));
+		threshhold /= 10000 * 5;
+		if(threshhold < g_timerTick)
+		{
+			g_timerTick = 0;
+			CDC_Transmit_FS(ADC1_Buf, ADC_SAMPLE_SIZE+3);
+		}
+		g_timerTick ++;
+	}
+
 	HAL_GPIO_TogglePin(PE3_HeartbeatLed_GPIO_Port, PE3_HeartbeatLed_Pin);
 	if(hadc == &hadc1) ADC1_DoneFlag = 1;
 #ifdef _HAS_ADC2_
