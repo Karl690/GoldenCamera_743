@@ -1,6 +1,7 @@
 #ifndef _LCDX_H_
 #define _LCDX_H_
-void LCDx_Init(void);
-void LCDx_Hyrellogo(void);
-void LCDx_DisplayOnOf(bool OnOff);
+#include <stdbool.h>
+void lcdx_init(void);
+void lcdx_logo(void);
+void lcdx_displayonoff(bool OnOff);
 #endif /* _LCDX_H_ */

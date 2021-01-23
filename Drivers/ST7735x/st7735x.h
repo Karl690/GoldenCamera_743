@@ -1,179 +1,67 @@
-/* vim: set ai et ts=4 sw=4: */
+/*
+ * st7735x.h
+ *
+ *  Created on: 16 ���. 2019 �.
+ *      Author: Andriy Honcharenko
+ *        Blog: https://stm32withoutfear.blogspot.com
+ */
+
 #ifndef __ST7735X_H__
 #define __ST7735X_H__
 
-#include "main.h"
+#include "st7735x_cfg.h""
+#include "fonts.h"
 #include <stdbool.h>
 
-#include "../ST7735x/fonts.h"
+extern SPI_HandleTypeDef ST7735X_SPI_PORT;
 
 #define ST7735X_MADCTL_MY  0x80
 #define ST7735X_MADCTL_MX  0x40
 #define ST7735X_MADCTL_MV  0x20
-#define ST7735X_MADCTL_ML  0x10
 #define ST7735X_MADCTL_RGB 0x00
 #define ST7735X_MADCTL_BGR 0x08
-#define ST7735X_MADCTL_MH  0x04
-
-/*** Redefine if necessary ***/
-#define ST7735X_SPI_PORT hspi2
-extern SPI_HandleTypeDef ST7735X_SPI_PORT;
-
-#define ST7735X_RES_Pin       LCD2_SPI2_MISO_RST_Pin// SPI2_MISO_LCD_Pin
-#define ST7735X_RES_GPIO_Port LCD2_SPI2_MISO_RST_GPIO_Port   //SPI2_MISO_LCD_GPIO_Port
-#define ST7735X_CS_Pin        LCD2_SPI_NSS_CS_Pin  //LCD_CS_Pin
-#define ST7735X_CS_GPIO_Port  LCD2_SPI_NSS_CS_GPIO_Port //LCD_CS_GPIO_Port
-#define ST7735X_DC_Pin        LCD2_GPIO_RS_Pin  // LCD_RS_Pin
-#define ST7735X_DC_GPIO_Port  LCD2_GPIO_RS_GPIO_Port //LCD_RS_GPIO_Port
 
 // AliExpress/eBay 1.8" display, default orientation
-/*
-#define ST7735_IS_160X128 1
-#define ST7735_WIDTH  128
-#define ST7735_HEIGHT 160
-#define ST7735_XSTART 0
-#define ST7735_YSTART 0
-#define ST7735_ROTATION (ST7735_MADCTL_MX | ST7735_MADCTL_MY)
-*/
-
-// AliExpress/eBay 1.8" display, rotate right
-/*
-#define ST7735_IS_160X128 1
-#define ST7735_WIDTH  160
-#define ST7735_HEIGHT 128
-#define ST7735_XSTART 0
-#define ST7735_YSTART 0
-#define ST7735_ROTATION (ST7735_MADCTL_MY | ST7735_MADCTL_MV)
-*/
-
-// AliExpress/eBay 1.8" display, rotate left
-/*
-#define ST7735_IS_160X128 1
-#define ST7735_WIDTH  160
-#define ST7735_HEIGHT 128
-#define ST7735_XSTART 0
-#define ST7735_YSTART 0
-#define ST7735_ROTATION (ST7735_MADCTL_MX | ST7735_MADCTL_MV)
-*/
-
-// AliExpress/eBay 1.8" display, upside down
-/*
-#define ST7735_IS_160X128 1
-#define ST7735_WIDTH  128
-#define ST7735_HEIGHT 160
-#define ST7735_XSTART 0
-#define ST7735_YSTART 0
-#define ST7735_ROTATION (0)
-*/
+#ifdef ST7735X_1_8_DEFAULT_ORIENTATION
+#define ST7735X_IS_160X128		1
+#define ST7735X_WIDTH  			128
+#define ST7735X_HEIGHT 			160
+#define ST7735X_XSTART 			0
+#define ST7735X_YSTART 			0
+#define ST7735X_DATA_ROTATION 	(ST7735X_MADCTL_MX | ST7735X_MADCTL_MY)
+#endif //ST7735X_1_8_DEFAULT_ORIENTATION
 
 // WaveShare ST7735S-based 1.8" display, default orientation
-/*
-#define ST7735_IS_160X128 1
-#define ST7735_WIDTH  128
-#define ST7735_HEIGHT 160
-#define ST7735_XSTART 2
-#define ST7735_YSTART 1
-#define ST7735_ROTATION (ST7735_MADCTL_MX | ST7735_MADCTL_MY | ST7735_MADCTL_RGB)
-*/
-
-// WaveShare ST7735S-based 1.8" display, rotate right
-/*
-#define ST7735_IS_160X128 1
-#define ST7735_WIDTH  160
-#define ST7735_HEIGHT 128
-#define ST7735_XSTART 1
-#define ST7735_YSTART 2
-#define ST7735_ROTATION (ST7735_MADCTL_MY | ST7735_MADCTL_MV | ST7735_MADCTL_RGB)
-*/
-
-// WaveShare ST7735S-based 1.8" display, rotate left
-/*
-#define ST7735_IS_160X128 1
-#define ST7735_WIDTH  160
-#define ST7735_HEIGHT 128
-#define ST7735_XSTART 1
-#define ST7735_YSTART 2
-#define ST7735_ROTATION (ST7735_MADCTL_MX | ST7735_MADCTL_MV | ST7735_MADCTL_RGB)
-*/
-
-// WaveShare ST7735S-based 1.8" display, upside down
-/*
-#define ST7735_IS_160X128 1
-#define ST7735_WIDTH  128
-#define ST7735_HEIGHT 160
-#define ST7735_XSTART 2
-#define ST7735_YSTART 1
-#define ST7735_ROTATION (ST7735_MADCTL_RGB)
-*/
+#ifdef ST7735S_1_8_DEFAULT_ORIENTATION
+#define ST7735X_IS_160X128 		1
+#define ST7735X_WIDTH  			128
+#define ST7735X_HEIGHT 			160
+#define ST7735X_XSTART 			2
+#define ST7735X_YSTART 			1
+#define	ST7735X_DATA_ROTATION	(ST7735X_MADCTL_MX | ST7735X_MADCTL_MY | ST7735X_MADCTL_RGB)
+#endif //ST7735S_1_8_DEFAULT_ORIENTATION
 
 // 1.44" display, default orientation
-#define ST7735X_IS_128X128 1
-#define ST7735X_WIDTH  128
-#define ST7735X_HEIGHT 128
-#define ST7735X_XSTART 2
-#define ST7735X_YSTART 3
-#define ST7735X_ROTATION (ST7735X_MADCTL_MX | ST7735X_MADCTL_MY | ST7735X_MADCTL_BGR)
-
-// 1.44" display, rotate right
-/*
-#define ST7735_IS_128X128 1
-#define ST7735_WIDTH  128
-#define ST7735_HEIGHT 128
-#define ST7735_XSTART 3
-#define ST7735_YSTART 2
-#define ST7735_ROTATION (ST7735_MADCTL_MY | ST7735_MADCTL_MV | ST7735_MADCTL_BGR)
-*/
-
-// 1.44" display, rotate left
-/*
-#define ST7735_IS_128X128 1
-#define ST7735_WIDTH  128
-#define ST7735_HEIGHT 128
-#define ST7735_XSTART 1
-#define ST7735_YSTART 2
-#define ST7735_ROTATION (ST7735_MADCTL_MX | ST7735_MADCTL_MV | ST7735_MADCTL_BGR)
-*/
-
-// 1.44" display, upside down
-/*
-#define ST7735_IS_128X128 1
-#define ST7735_WIDTH  128
-#define ST7735_HEIGHT 128
-#define ST7735_XSTART 2
-#define ST7735_YSTART 1
-#define ST7735_ROTATION (ST7735_MADCTL_BGR)
-*/
+#ifdef ST7735X_1_44_DEFAULT_ORIENTATION
+#define ST7735X_IS_128X128 		1
+#define ST7735X_WIDTH  			128
+#define ST7735X_HEIGHT 			128
+#define ST7735X_XSTART 			2
+#define ST7735X_YSTART 			3
+//#define ST7735X_VALUE_ROTATION	0
+#define ST7735X_DATA_ROTATION 	(ST7735X_MADCTL_MX | ST7735X_MADCTL_MY | ST7735X_MADCTL_BGR)
+#endif //ST7735X_1_44_DEFAULT_ORIENTATION
 
 // mini 160x80 display (it's unlikely you want the default orientation)
-/*
-#define ST7735_IS_160X80 1
-#define ST7735_XSTART 26
-#define ST7735_YSTART 1
-#define ST7735_WIDTH  80
-#define ST7735_HEIGHT 160 
-#define ST7735_ROTATION (ST7735_MADCTL_MX | ST7735_MADCTL_MY | ST7735_MADCTL_BGR)
-*/
-
-// mini 160x80, rotate left
-/*
-#define ST7735_IS_160X80 1
-#define ST7735_XSTART 1
-#define ST7735_YSTART 26
-#define ST7735_WIDTH  160
-#define ST7735_HEIGHT 80
-#define ST7735_ROTATION (ST7735_MADCTL_MX | ST7735_MADCTL_MV | ST7735_MADCTL_BGR)
-*/
-
-// mini 160x80, rotate right 
-/*
-#define ST7735_IS_160X80 1
-#define ST7735_XSTART 1
-#define ST7735_YSTART 26
-#define ST7735_WIDTH  160
-#define ST7735_HEIGHT 80
-#define ST7735_ROTATION (ST7735_MADCTL_MY | ST7735_MADCTL_MV | ST7735_MADCTL_BGR)
-*/
-
+#ifdef ST7735X_MINI_DEFAULT_ORIENTATION
+#define ST7735X_IS_160X80 		1
+#define ST7735X_XSTART 			0
+#define ST7735X_YSTART 			0
+#define ST7735X_WIDTH  			160
+#define ST7735X_HEIGHT 			80
+//#define ST7735X_VALUE_ROTATION	0
+#define ST7735X_DATA_ROTATION 	(ST7735X_MADCTL_MX | ST7735X_MADCTL_MY | ST7735X_MADCTL_BGR)
+#endif //ST7735X_MINI_DEFAULT_ORIENTATION
 /****************************/
 
 #define ST7735X_NOP     0x00
@@ -231,17 +119,34 @@ extern SPI_HandleTypeDef ST7735X_SPI_PORT;
 #define ST7735X_MAGENTA 0xF81F
 #define ST7735X_YELLOW  0xFFE0
 #define ST7735X_WHITE   0xFFFF
-#define ST7735X_COLOR565(r, g, b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3))
 
-// call before initializing any SPI devices
-void ST7735X_Unselect();
-
+void ST7735X_Backlight_On(void);
+void ST7735X_Backlight_Off(void);
 void ST7735X_Init(void);
 void ST7735X_DrawPixel(uint16_t x, uint16_t y, uint16_t color);
-void ST7735X_WriteString(uint16_t x, uint16_t y, const char* str, FontDef font, uint16_t color, uint16_t bgcolor);
+void ST7735X_DrawString(uint16_t x, uint16_t y, const char* str, FontDef font, uint16_t color, uint16_t bgcolor);
 void ST7735X_FillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
 void ST7735X_FillScreen(uint16_t color);
 void ST7735X_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t* data);
 void ST7735X_InvertColors(bool invert);
+void ST7735X_DrawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color);
+void ST7735X_DrawCircleHelper( int16_t x0, int16_t y0, int16_t r, uint8_t cornername, uint16_t color);
+void ST7735X_FillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color);
+void ST7735X_FillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername, int16_t delta, uint16_t color);
+void ST7735X_DrawEllipse(int16_t x0, int16_t y0, int16_t rx, int16_t ry, uint16_t color);
+void ST7735X_FillEllipse(int16_t x0, int16_t y0, int16_t rx, int16_t ry, uint16_t color);
+void ST7735X_DrawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
+void ST7735X_DrawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r, uint16_t color);
+void ST7735X_FillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r, uint16_t color);
+void ST7735X_DrawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color);
+void ST7735X_FillTriangle( int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color);
+void ST7735X_DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
+void ST7735X_DrawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
+void ST7735X_DrawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
+void ST7735X_SetRotation(uint8_t m);
+uint8_t ST7735X_GetRotation(void);
+int16_t ST7735X_GetHeight(void);
+int16_t ST7735X_GetWidth(void);
+
 
 #endif // __ST7735X_H__

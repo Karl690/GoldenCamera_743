@@ -150,7 +150,7 @@ void Camera_Reset(Camera_HandleTypeDef *hov)
 	Camera_WriteReg(hov, 0x12, &temp);
 	HAL_Delay(100);
 }
-
+/*
 void Camera_XCLK_Set(uint8_t xclktype)
 {
 	if (xclktype == XCLK_TIM)
@@ -225,6 +225,7 @@ void Camera_XCLK_Set(uint8_t xclktype)
 	}
 }
 
+*/
 void Camera_Init_Device(I2C_HandleTypeDef *hi2c, framesize_t framesize)
 {
 	hcamera.hi2c = hi2c;

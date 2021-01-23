@@ -7,7 +7,7 @@
 
 #ifndef GUI_H_
 #define GUI_H_
-#include "st7735.h"
+#include "st7735x.h"
 #define GUI_OK 		1
 #define GUI_ERROR 	0
 

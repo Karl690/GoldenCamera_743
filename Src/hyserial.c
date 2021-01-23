@@ -7,8 +7,10 @@
 #define HYCOMMAND_NUM  1
 enum {M777, ADC, };
 char* hycommand[HYCOMMAND_NUM] = {"M777", "ADC"};
-void ReceivedVCPMessage(uint8_t* buf, uint16_t len) {
-	if(len == 1) {
+void ReceivedVCPMessage(uint8_t* buf, uint16_t len)
+{
+	if(len == 1)
+	{
 		extern uint8_t IsDrawingAxis;
 		extern uint8_t IsLiveStream;
 		switch(buf[0]) {
@@ -23,7 +25,6 @@ void ReceivedVCPMessage(uint8_t* buf, uint16_t len) {
 			ChangeADCSampleRate(buf[0]);
 			break;
 		}
-
 	}else {
 		if(ParseCommand(buf, len)) {
 
@@ -36,7 +37,8 @@ void ReceivedVCPMessage(uint8_t* buf, uint16_t len) {
 	CDC_Transmit_FS(ASCII_ACK, 1);
 }
 
-void PingReply (void){
+void PingReply (void)
+{
 	sendRevisionString("PingReply");
 }
 
@@ -44,7 +46,7 @@ void SendRevisionString(char *reason){
 	extern SYSTEMINFO SystemInfo;
 	uint8_t trans_buffer[100] = {0};
 	//trans_buffer[0] = PING_CHAR;
-	sprintf(trans_buffer, ">Hy: %s :GoldenCamera sw %d.%03d", reason, SystemInfo.softwareMajorVersion, SystemInfo.softwareMinorVersion);
+	sprintf(trans_buffer, ">Hy: %s : GoldenCamera sw %d.%03d", reason, SystemInfo.softwareMajorVersion, SystemInfo.softwareMinorVersion);
 	CDC_Transmit_FS(trans_buffer, strlen(trans_buffer));
 }
 
@@ -60,19 +62,19 @@ bool ParseCommand(char* buf, uint8_t len)
 	}
 	if(CMD_ID == -1) return false;
 
-	switch(CMD_ID) {
+	switch(CMD_ID)
+	{
 	case M777:
-		ParesM777Commad(buf, len);
+		ParesM777Command(buf, len);
 		break;
 	case ADC:
 		break;
-
 	}
 	return true;
 }
 
 //M777 F1, F10, F100, F1K,...
-bool ParesM777Commad(char* buf, uint8_t len)
+bool ParesM777Command(char* buf, uint8_t len)
 {
 	if(len < 6) return false;
 	char* param = buf + 5; //"M777 F"
@@ -131,7 +133,8 @@ void ChangeADCSampleRate(uint8_t Code)
 	uint32_t prescaler = htim6.Init.Prescaler;
 	uint32_t period = htim6.Init.Period;
 
-	switch(Code) {
+	switch(Code)
+	{
 	case ADC_SAMPLERATE_1HZ:
 		break;
 	case ADC_SAMPLERATE_10HZ:
@@ -172,7 +175,8 @@ void ChangeADCSampleRate(uint8_t Code)
 	HAL_ADC_Start_DMA(&hadc1, &ADC1_Buf[3], ADC_SAMPLE_SIZE);
 	HAL_TIM_Base_Start(&htim6);
 }
-void ADC_Start() {
+void ADC_Start()
+{
 	extern ADC_HandleTypeDef hadc1;
 	extern TIM_HandleTypeDef htim6;
 	extern uint8_t ADC1_Buf[ADC_SAMPLE_SIZE];
@@ -184,7 +188,8 @@ void ADC_Start() {
 	IsRequestSendAdcData = true;
 }
 
-void ADC_Stop() {
+void ADC_Stop()
+{
 	extern ADC_HandleTypeDef hadc1;
 	extern TIM_HandleTypeDef htim6;
 	extern uint8_t IsRequestSendAdcData;
@@ -194,18 +199,18 @@ void ADC_Stop() {
 	IsRequestSendAdcData = false;
 }
 
-void SendAdcStatus() {
+void SendAdcStatus()
+{
 	char buf[50] = {0};
 	sprintf(buf, "%s %d", GetADCRequestSignalStatus()? ADC_STATUS_VCP_BUSY: ADC_STATUS_VCP_IDLE, GetAdcFrequence() );
 	SendVcpData(buf, strlen(buf));
 }
 
-void SendVcpData(char* text, uint8_t len) {
+void SendVcpData(char* text, uint8_t len)
+{
 	extern uint8_t IsRequestSendAdcData;
 	uint8_t PrevIsRequestAdcData = IsRequestSendAdcData;
 	IsRequestSendAdcData = false;
-
 	CDC_Transmit_FS(text,  len);
-
 	IsRequestSendAdcData = PrevIsRequestAdcData;
 }

@@ -20,7 +20,6 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-#include <hyserial.h>
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */

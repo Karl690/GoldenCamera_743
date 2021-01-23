@@ -97,7 +97,7 @@
 
  void ReceivedVCPMessage(uint8_t* buf, uint16_t len);
  bool ParseCommand(char* buf, uint8_t len);
- bool ParesM777Commad(char* buf, uint8_t len);
+ bool ParesM777Command(char* buf, uint8_t len);
  void ChangeADCSampleRate(uint8_t Code);
  bool GetADCRequestSignalStatus();
 /* USER CODE BEGIN Prototypes */

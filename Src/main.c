@@ -32,7 +32,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "camera.h"
-#include "lcd.h"
+#include "lcdx.h"
 #include "constant.h"
 #include "systeminfo.h"
 #include "gui.h"
@@ -143,11 +143,9 @@ int main(void)
   MX_DCMI_Init();
   MX_I2C1_Init();
   MX_SPI4_Init();
-  MX_TIM1_Init();
   MX_USB_DEVICE_Init();
   MX_ADC1_Init();
   MX_DAC1_Init();
-  MX_TIM2_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   uint8_t text[30];
@@ -159,19 +157,17 @@ int main(void)
   SystemInfo.mcuDeviceID = HAL_GetDEVID();
   SystemInfo.mcuRevisionID = HAL_GetREVID();
   ADC1_SampleRate  =  SystemCoreClock / (float)(htim6.Init.Prescaler * htim6.Init.Period * 1000) ;
-  LCD_Init();
-  //LCDx_Init();
-  LCD_Logo();
-  //LCDx_Hyrellogo();
+  lcdx_init();
+  lcdx_logo();
 
 #ifdef _HAS_CAMERA_
   Camera_Init_Device(&hi2c1, FRAMESIZE_QQVGA);
 #endif
   sprintf((char *)&text, "SW %d.%03d   ", SOFTWARE_MAJOR_REVISION, SOFTWARE_MINOR_REVISION);
-  LCD_ShowString(40, 2, ST7735Ctx.Width, 16, 12, text);
+  //LCD_ShowString(40, 2, ST7735Ctx.Width, 16, 12, text);
 
   sprintf((char *)&text, "LongPress K1 to Run");
-  LCD_ShowString(50, 58, ST7735Ctx.Width, 16, 12, text);
+  //LCD_ShowString(50, 58, ST7735Ctx.Width, 16, 12, text);
 
   while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET)
   {
@@ -186,14 +182,14 @@ int main(void)
   HAL_ADC_Start_DMA(&hadc1, &ADC1_Buf[3], ADC_SAMPLE_SIZE);
   HAL_TIM_Base_Start(&htim6);
   HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_2, (uint32_t*)Pulse_LUT, 128, DAC_ALIGN_8B_R);
-  HAL_TIM_Base_Start(&htim2);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
 #ifndef _HAS_CAMERA_
-  ST7735_FillRect(&st7735_pObj, 0, 0, ST7735Ctx.Width, 80, 0x000);
+  //ST7735_FillRect(&st7735_pObj, 0, 0, ST7735Ctx.Width, 80, 0x000);
 #endif
   while (1)
   {
@@ -205,26 +201,26 @@ int main(void)
 	  {
 		  DCMI_FrameIsReady = 0;
 		  //CDx_Hyrellogo();
-		  ST7735_FillRGBRect(&st7735_pObj,0,0,(uint8_t *)&DCMI_Buf[20][0], ST7735Ctx.Width, 80);
+		  //ST7735_FillRGBRect(&st7735_pObj,0,0,(uint8_t *)&DCMI_Buf[20][0], ST7735Ctx.Width, 80);
 		  sprintf((char *)&text,"%d", raw);
-		  LCD_ShowString(5,5,60,16,12,text);
+		  //LCD_ShowString(5,5,60,16,12,text);
 		  HAL_Delay(10);
 	  }
 #else
 	  if(HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET && (ADC1_DoneFlag || ADC2_DoneFlag))
 	  {
 
-		  GuiReset(LCD_BUF, GUI_COLOR_BACKGROUND);
+		  //GuiReset(LCD_BUF, GUI_COLOR_BACKGROUND);
 		  if(ADC1_DoneFlag == 1 ) {
-			  GuiDrawWave(LCD_BUF, ADC1_Buf, ADC_WavePos, ADC_WaveScale, GUI_COLOR_ADC_CHANNEL_01);
+			  //GuiDrawWave(LCD_BUF, ADC1_Buf, ADC_WavePos, ADC_WaveScale, GUI_COLOR_ADC_CHANNEL_01);
 			  ADC1_DoneFlag = 0;
 		  }
 
-		  GuiDrawAxis(LCD_BUF, GUI_COLOR_AXIS);
-		  ST7735_FillRGBRect(&st7735_pObj,0,0,(uint8_t *)&LCD_BUF[0][0], ST7735Ctx.Width, ST7735Ctx.Height);
+		  //GuiDrawAxis(LCD_BUF, GUI_COLOR_AXIS);
+		  //ST7735X_FillRGBRect(&st7735_pObj,0,0,(uint8_t *)&LCD_BUF[0][0], ST7735Ctx.Width, ST7735Ctx.Height);
 		  ADC1_SampleRate  =  GetAdcFrequence(); //SystemCoreClock / (float)(htim6.Init.Prescaler * htim6.Init.Period) ;
 		  sprintf(text, "SR: %dHz", ADC1_SampleRate);
-		  LCD_ShowString(10,10, ST7735Ctx.Width, 16, 12, text);
+		  //LCD_ShowString(10,10, ST7735Ctx.Width, 16, 12, text);
 	  }
 	  HAL_Delay(1);
 
