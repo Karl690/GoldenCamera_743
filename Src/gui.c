@@ -6,6 +6,7 @@
  */
 
 #include "gui.h"
+#include "lcd.h"
 #include "constant.h"
 
 void GuiReset(uint16_t* lcd_buf, uint16_t Color) {
@@ -123,4 +124,77 @@ int32_t GuiDrawLine(uint16_t* lcd_buf, uint32_t x1, uint32_t y1, uint32_t x2, ui
 	}
 #endif
 	return ret;
+}
+
+int32_t GuiDrawString(uint16_t* lcd_buf, uint16_t x,uint16_t y,
+					uint16_t width,uint16_t height,uint8_t size,uint8_t *p)
+{
+
+	uint8_t x0=x;
+	width+=x;
+	height+=y;
+	while((*p<='~')&&(*p>=' '))//�ж��ǲ��ǷǷ��ַ�!
+	{
+		if(x>=width){x=x0;y+=size;}
+		if(y>=height)break;//�˳�
+		GuiDrawChar(lcd_buf, x,y,*p,size);
+		x+=size/2;
+		p++;
+	}
+}
+
+void GuiDrawChar(uint16_t* lcd_buf, uint16_t x,uint16_t y,uint8_t num,uint8_t size)
+{
+	uint8_t temp,t1,t;
+	uint16_t y0=y;
+	uint16_t x0=x;
+	uint16_t colortemp = POINT_COLOR;
+	uint32_t h,w;
+
+	uint16_t write[size][size==12?6:8];
+	uint16_t count;
+
+	w = LCD_WIDTH;
+	h = LCD_HEIGHT;
+
+	num=num-' ';
+	count = 0;
+	extern const unsigned char asc2_1206[95][12];
+	extern const unsigned char asc2_1608[95][16];
+	for(t=0;t<size;t++)
+	{
+		if(size==12)temp=asc2_1206[num][t];  //����1206����
+		else temp=asc2_1608[num][t];		 //����1608����
+
+		for(t1=0;t1<8;t1++)
+		{
+			if(temp&0x80)
+			{
+				uint16_t yindex = (uint16_t)((y0+count) * LCD_WIDTH);
+				uint16_t xindex = x0 + t/2;
+				lcd_buf[yindex + xindex] = POINT_COLOR;
+			}else {
+
+			}
+			count ++;
+			if(count >= size) count =0;
+
+			temp<<=1;
+			y++;
+			if(y>=h)
+			{
+				return;
+			}
+			if((y-y0)==size)
+			{
+				y=y0;
+				x++;
+				if(x>=w)
+				{
+					return;
+				}
+				break;
+			}
+		}
+	}
 }

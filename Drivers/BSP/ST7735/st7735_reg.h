@@ -103,7 +103,7 @@
 #define ST7735_EXT_CTRL                     0xF0U  /* Extension command control                   */
 #define ST7735_PWR_CTRL6                    0xFCU  /* In partial mode + Idle mode: PWCTR6         */
 #define ST7735_VCOM4_LEVEL                  0xFFU  /* VCOM 4 level control                        */
-
+#define ST7735_USE_DMA
 /**
   * @}
   */

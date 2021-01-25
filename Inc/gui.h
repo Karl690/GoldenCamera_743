@@ -27,4 +27,7 @@ int32_t GuiDrawVLine(uint16_t* lcd_buf, uint32_t Xpos, uint32_t Ypos, uint32_t L
 int32_t GuiDrawHLine(uint16_t* lcd_buf, uint32_t Xpos, uint32_t Ypos, uint32_t Length, uint16_t Color);
 int32_t GuiDrawLine(uint16_t* lcd_buf, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint16_t Color);
 int32_t GuiDrawRectangle(uint16_t* lcd_buf, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint16_t Color);
+int32_t GuiDrawString(uint16_t* lcd_buf, uint16_t x,uint16_t y,
+					uint16_t width,uint16_t height,uint8_t size,uint8_t *p);
+void GuiDrawChar(uint16_t* lcd_buf, uint16_t x,uint16_t y,uint8_t num,uint8_t size);
 #endif /* GUI_H_ */

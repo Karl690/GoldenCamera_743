@@ -14,8 +14,8 @@
 #define TFT_BL_H()	HAL_GPIO_WritePin(ST7735X_BL_GPIO_Port, ST7735X_BL_Pin, GPIO_PIN_SET)   //ST7735X_BL_GPIO_Port->BSRR = ST7735X_BL_Pin
 #define TFT_BL_L()	HAL_GPIO_WritePin(ST7735X_BL_GPIO_Port, ST7735X_BL_Pin, GPIO_PIN_RESET)  //ST7735X_BL_GPIO_Port->BRR = ST7735X_BL_Pin
 
-#define TFT_CS_H()  HAL_GPIO_WritePin(ST7735X_CS_GPIO_Port, ST7735X_CS_Pin, GPIO_PIN_SET) // ST7735X_CS_GPIO_Port->BSRR = ST7735X_CS_Pin
-#define TFT_CS_L()  HAL_GPIO_WritePin(ST7735X_CS_GPIO_Port, ST7735X_CS_Pin, GPIO_PIN_RESET)  //ST7735X_CS_GPIO_Port->BRR 	= ST7735X_CS_Pin
+#define TFT_CS_H()  HAL_GPIO_WritePin(ST7735X_CS_GPIO_Port, ST7735X_CS_Pin, GPIO_PIN_RESET) // ST7735X_CS_GPIO_Port->BSRR = ST7735X_CS_Pin
+#define TFT_CS_L()  HAL_GPIO_WritePin(ST7735X_CS_GPIO_Port, ST7735X_CS_Pin, GPIO_PIN_SET)  //ST7735X_CS_GPIO_Port->BRR 	= ST7735X_CS_Pin
 
 #define TFT_DC_D()	HAL_GPIO_WritePin(ST7735X_DC_GPIO_Port, ST7735X_DC_Pin, GPIO_PIN_SET) // ST7735X_DC_GPIO_Port->BSRR = ST7735X_DC_Pin
 #define TFT_DC_C()	HAL_GPIO_WritePin(ST7735X_DC_GPIO_Port, ST7735X_DC_Pin, GPIO_PIN_RESET)  //ST7735X_DC_GPIO_Port->BRR 	= ST7735X_DC_Pin
@@ -94,10 +94,10 @@ init_cmds2[] = {					// Init for 7735S, part 2 (160x80 display)
 		3,                        	//  3 commands in list:
 		ST7735X_CASET, 4,  			//  1: Column addr set, 4 args, no delay:
 		0x00, 0x00,             	//     XSTART = 0
-		0x00, 0x4F,             	//     XEND = 79
+		0x00, 0x9F,             	//     XEND = 79
 		ST7735X_RASET, 4,  			//  2: Row addr set, 4 args, no delay:
 		0x00, 0x00,             	//     XSTART = 0
-		0x00, 0x9F ,            	//     XEND = 159
+		0x00, 0x4F ,            	//     XEND = 159
 		ST7735X_INVON, 0 },        //  3: Invert colors
 #endif
 
@@ -154,14 +154,12 @@ static void ST7735X_Reset()
 static void ST7735X_WriteCommand(uint8_t cmd)
 {
 	TFT_DC_C();
-/*
 #ifdef USE_SPI_DMA
-  completed1 = 0;
 	HAL_SPI_Transmit_DMA(&ST7735X_SPI_PORT, &cmd, sizeof(cmd));
-	//while(hspi1.State == HAL_SPI_STATE_BUSY_TX);
-#else*/
+	while(ST7735X_SPI_PORT.State == HAL_SPI_STATE_BUSY_TX);
+#else
 	HAL_SPI_Transmit(&ST7735X_SPI_PORT, &cmd, sizeof(cmd), HAL_MAX_DELAY);
-//#endif
+#endif
 }
 
 static void ST7735X_WriteData(uint8_t* buff, size_t buff_size)
@@ -253,8 +251,10 @@ void ST7735X_Init()
     ST7735X_ExecuteCommandList(init_cmds1);
     ST7735X_ExecuteCommandList(init_cmds2);
     ST7735X_ExecuteCommandList(init_cmds3);
-    ST7735X_SetRotation(2);
     TFT_CS_H();
+
+    //ST7735X_SetRotation(1);
+
 }
 
 void ST7735X_DrawPixel(uint16_t x, uint16_t y, uint16_t color)

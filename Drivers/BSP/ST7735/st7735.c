@@ -783,7 +783,7 @@ int32_t ST7735_DrawVLine(ST7735_Object_t *pObj, uint32_t Xpos, uint32_t Ypos, ui
 
   if((Ypos + Length) > ST7735Ctx.Height)
   {
-	  ret = ST7735_ERROR;
+    ret = ST7735_ERROR;
   }
   else
   {

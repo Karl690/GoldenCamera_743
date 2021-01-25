@@ -7,8 +7,8 @@ HeaderPath=Drivers\STM32H7xx_HAL_Driver\Inc;Drivers\STM32H7xx_HAL_Driver\Inc\Leg
 CDefines=USE_HAL_DRIVER;STM32H743xx;USE_HAL_DRIVER;USE_HAL_DRIVER;
 
 [PreviousGenFiles]
-HeaderPath=F:/HYREL/work/GoldenCamera_743/Inc
+HeaderPath=D:/HYREL/work/GoldenCamera_743/Inc
 HeaderFiles=gpio.h;adc.h;dac.h;dcmi.h;dma.h;i2c.h;spi.h;tim.h;usb_device.h;usbd_conf.h;usbd_desc.h;usbd_cdc_if.h;stm32h7xx_it.h;stm32h7xx_hal_conf.h;main.h;
-SourcePath=F:/HYREL/work/GoldenCamera_743/Src
+SourcePath=D:/HYREL/work/GoldenCamera_743/Src
 SourceFiles=gpio.c;adc.c;dac.c;dcmi.c;dma.c;i2c.c;spi.c;tim.c;usb_device.c;usbd_conf.c;usbd_desc.c;usbd_cdc_if.c;stm32h7xx_it.c;stm32h7xx_hal_msp.c;main.c;
 
