@@ -33,4 +33,5 @@ void BlinkLed();
 void TestVCP(void);
 void ProcessEverySlice(void);
 void MainControlLoop(void	);
+void RFID_Check(void);
 #endif /* SRC_LED_H_ */

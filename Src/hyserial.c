@@ -3,10 +3,10 @@
 #include "constant.h"
 #include "systeminfo.h"
 #include <string.h>
-
-#define HYCOMMAND_NUM  1
-enum {M777, ADC, };
-char* hycommand[HYCOMMAND_NUM] = {"M777", "ADC"};
+#include "rfid.h"
+#define HYCOMMAND_NUM  3
+enum {M777, ADC, RFID};
+char* hycommand[HYCOMMAND_NUM] = {"M777", "ADC", "RFID"};
 void ReceivedVCPMessage(uint8_t* buf, uint16_t len)
 {
 	if(len == 1)
@@ -69,10 +69,26 @@ bool ParseCommand(char* buf, uint8_t len)
 		break;
 	case ADC:
 		break;
+	case RFID:
+		ParesRfidCommand(buf, len);
+		break;
 	}
 	return true;
 }
-
+//RFID [String]
+bool ParesRfidCommand(char* buf, uint8_t len)
+{
+	if(len < 6) return false;
+	char* param = buf + 5;
+	char txt[256] = {0};
+	if(rfid_write_block(1, param, len - 5)) {
+		sprintf(txt, "RFID %d SUCCESS WRITEN", RFID_COMMAND_WRITEN );
+	}else {
+		sprintf(txt, "RFID %d ERROR WRITE", RFID_COMMAND_WRITEN );
+	}
+	CDC_Transmit_FS(txt, strlen(txt));
+	return true;
+}
 //M777 F1, F10, F100, F1K,...
 bool ParesM777Command(char* buf, uint8_t len)
 {
@@ -136,30 +152,36 @@ void ChangeADCSampleRate(uint8_t Code)
 	switch(Code)
 	{
 	case ADC_SAMPLERATE_1HZ:
+		prescaler = 10000 - 1;
+		period = 10000-1;
 		break;
 	case ADC_SAMPLERATE_10HZ:
+		prescaler = 10000-1;
+		period = 1000-1;
 		break;
 	case ADC_SAMPLERATE_100HZ:
+		prescaler = 10000-1;
+		period = 100-1;
 		break;
 	case ADC_SAMPLERATE_1KHZ:
-		prescaler = 10000;
-		period = 10;
+		prescaler = 10000-1;
+		period = 10-1;
 		break;
 	case ADC_SAMPLERATE_10KHZ:
-		prescaler = 1000;
-		period = 10;
+		prescaler = 1000-1;
+		period = 10-1;
 		break;
 	case ADC_SAMPLERATE_100KHZ:
-		prescaler = 100;
-		period = 10;
+		prescaler = 100-1;
+		period = 10-1;
 		break;
 	case ADC_SAMPLERATE_1MHZ:
-		prescaler = 100;
-		period = 1;
+		prescaler = 10-1;
+		period = 10-1;
 		break;
 	case ADC_SAMPLERATE_10MHZ:
-		prescaler = 10;
-		period = 1;
+		prescaler = 0;
+		period = 10-1;
 		break;
 	}
 
@@ -173,7 +195,7 @@ void ChangeADCSampleRate(uint8_t Code)
 	SendAdcStatus();
 
 	HAL_ADC_Start_DMA(&hadc1, &ADC1_Buf[3], ADC_SAMPLE_SIZE);
-	HAL_TIM_Base_Start(&htim6);
+	HAL_TIM_Base_Start_IT(&htim6);
 }
 void ADC_Start()
 {

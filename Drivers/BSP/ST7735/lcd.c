@@ -42,7 +42,7 @@ ST7735_IO_t st7735_pIO = {
 };
 
 ST7735_Object_t st7735_pObj;
-uint32_t st7735_id;
+uint32_t 		st7735_id;
 
 void LCD_Test(void)
 {
@@ -164,13 +164,13 @@ void LCD_SoftPWMCtrlRun(void)
 		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_10, GPIO_PIN_RESET);
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if (htim->Instance == TIM16)
-	{
-		LCD_SoftPWMCtrlRun();
-	} 
-}
+//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+//{
+//	if (htim->Instance == TIM16)
+//	{
+//		LCD_SoftPWMCtrlRun();
+//	}
+//}
 
 // ��Ļ�𽥱������߱䰵
 // Brightness_Dis: Ŀ��ֵ
@@ -225,16 +225,16 @@ uint16_t BACK_COLOR=BLACK;  //����ɫ
 
 void LCD_ShowChar(uint16_t x,uint16_t y,uint8_t num,uint8_t size,uint8_t mode)
 {  							  
-  uint8_t temp,t1,t;
+	uint8_t temp,t1,t;
 	uint16_t y0=y;
 	uint16_t x0=x;
 	uint16_t colortemp=POINT_COLOR; 
-  uint32_t h,w;
+	uint32_t h,w;
 	
 	uint16_t write[size][size==12?6:8];
 	uint16_t count;
 	
-  ST7735_GetXSize(&st7735_pObj,&w);
+	ST7735_GetXSize(&st7735_pObj,&w);
 	ST7735_GetYSize(&st7735_pObj,&h);
 	
 	//���ô���		   

@@ -76,7 +76,7 @@ const PFUNC F1HZ[NUM_1HZ] =
 		Spare,
 		Spare,
 		Spare,
-		Spare,
+		RFID_Check,
 		Spare,
 		Spare,//loop_1Hz_simple_work,   // keep as last call in this array
 };
@@ -96,7 +96,8 @@ void BlinkLed(void){
 }
 
 
-void GenerateDacSignal() {
+void GenerateDacSignal()
+{
 	//extern DAC_HandleTypeDef hdac1;
 	//hdac1.Instance->DHR12R1 = sin(PI * Alpha / 180.0) * 100;
 	Alpha ++;
@@ -111,6 +112,10 @@ void Heartbeat(void)
 void TestVCP(void){
 	char Buf[20]  = "USB VCP IS OK\n";
 	CDC_Transmit_FS(Buf, strlen(Buf));
+}
+void RFID_Check(void)
+{
+	//rfid_process_scan();
 }
 
 //This function is called thousands of times per second as a callback function of SysTick.
@@ -132,7 +137,7 @@ void ProcessEverySlice(void)
 	if (GLOBAL_SYNC)
 	{   //reset all event pointers so that  all heads on the canbus are in sync
 		CLR_GLOBAL_SYNC_BIT;
-		SliceCnt                       = 0;
+		SliceCnt = 0;
 		Tick1000hzCounter = 0;
 		Tick100hzCounter = 0;
 		Tick10hzCounter = 0;

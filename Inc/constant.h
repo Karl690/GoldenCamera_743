@@ -1,9 +1,14 @@
-#define SOFTWARE_REVISIO
+
+
+#define SOFTWARE_REVISION
+
+#define CAMERA_MODE 0
+#define ADC_MODE	1
+#define RFID_MODE	2
 
 #define FRAME_WIDTH 160
 #define FRAME_HEIGHT 120
-#define LCD_WIDTH 160
-#define LCD_HEIGHT 80
+
 #define SYSTICKS_PER_SECOND 1000//1000 int per second
 
 #define ADC_SAMPLE_SIZE 1024
@@ -13,3 +18,4 @@
 #define _MAX(a, b) (a > b? a: b)
 
 #define PI 3.141592
+

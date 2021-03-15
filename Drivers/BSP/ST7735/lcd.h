@@ -16,18 +16,19 @@
 #define GREEN         	 0x07E0
 #define CYAN          	 0x7FFF
 #define YELLOW        	 0xFFE0
-#define BROWN 			 0XBC40 //棕色
-#define BRRED 			 0XFC07 //棕红色
-#define GRAY  			 0X8430 //灰色
-#define DARKBLUE      	 0X01CF	//深蓝色
-#define LIGHTBLUE      	 0X7D7C	//浅蓝色  
-#define GRAYBLUE       	 0X5458 //灰蓝色
+#define BROWN 			 0XBC40
+#define BRRED 			 0XFC07
+#define GRAY  			 0X8430
+#define DARKBLUE      	 0X01CF
+#define LIGHTBLUE      	 0X7D7C
+#define GRAYBLUE       	 0X5458
 
-extern ST7735_Object_t st7735_pObj;
-extern uint32_t st7735_id;
 
-extern uint16_t POINT_COLOR;	//画笔颜色
-extern uint16_t BACK_COLOR;  //背景色 
+extern ST7735_Object_t 	st7735_pObj;
+extern uint32_t 		st7735_id;
+
+extern uint16_t POINT_COLOR;
+extern uint16_t BACK_COLOR;
 
 void LCD_Test(void);
 void LCD_SetBrightness(uint32_t Brightness);

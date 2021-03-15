@@ -6,7 +6,7 @@
 typedef struct _SYSTEMINFO{
 	uint8_t softwareMajorVersion;
 	uint8_t softwareMinorVersion;
-	uint8_t softwareUpdateDate[20];
+	uint8_t softwareUpdateDate[50];
 	uint32_t mcuVersion;
 	uint32_t mcuDeviceID;
 	uint32_t mcuRevisionID;
