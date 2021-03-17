@@ -206,13 +206,14 @@ int main(void)
 	  	  rfid_process_scan();
 	  	  break;
 	  }
-
 	  HAL_Delay(1);
   }
   /* USER CODE END 3 */
 }
 
 /**
+ *
+ *
   * @brief System Clock Configuration
   * @retval None
   */

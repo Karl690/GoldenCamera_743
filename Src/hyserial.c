@@ -7,7 +7,11 @@
 #define HYCOMMAND_NUM  3
 enum {M777, ADC, RFID};
 char* hycommand[HYCOMMAND_NUM] = {"M777", "ADC", "RFID"};
-void ReceivedVCPMessage(uint8_t* buf, uint16_t len)
+char serial_buf[MAX_BUFFER_SIZE] = {0};
+uint32_t  received_size = 0;
+uint32_t  received_address = 0;
+#define ONE_BUFFER_SIZE 64
+void ReceivedVCPMessage(uint8_t* buf, uint32_t len)
 {
 	if(len == 1)
 	{
@@ -26,10 +30,20 @@ void ReceivedVCPMessage(uint8_t* buf, uint16_t len)
 			break;
 		}
 	}else {
-		if(ParseCommand(buf, len)) {
-
+		memcpy(serial_buf + received_address, buf, len);
+		received_address += len;
+		received_size += len;
+		if(len < ONE_BUFFER_SIZE){
+			ParseCommand(serial_buf, received_size);
+			received_address = 0;
+			received_size = 0;
+			memset(serial_buf, 0, MAX_BUFFER_SIZE);
 		}else {
-
+			if(received_size >= MAX_BUFFER_SIZE) {
+				received_address = 0;
+				received_size = 0;
+				memset(serial_buf, 0, MAX_BUFFER_SIZE);
+			}
 		}
 
 		//CDC_Transmit_FS(buf, len);
@@ -50,7 +64,7 @@ void SendRevisionString(char *reason){
 	CDC_Transmit_FS(trans_buffer, strlen(trans_buffer));
 }
 
-bool ParseCommand(char* buf, uint8_t len)
+bool ParseCommand(char* buf, uint32_t len)
 {
 	char* command = NULL;
 	uint8_t CMD_ID = -1;
@@ -76,21 +90,29 @@ bool ParseCommand(char* buf, uint8_t len)
 	return true;
 }
 //RFID [String]
-bool ParesRfidCommand(char* buf, uint8_t len)
+bool ParesRfidCommand(char* buf, uint32_t len)
 {
 	if(len < 6) return false;
 	char* param = buf + 5;
 	char txt[256] = {0};
-	if(rfid_write_block(1, param, len - 5)) {
-		sprintf(txt, "RFID %d SUCCESS WRITEN", RFID_COMMAND_WRITEN );
-	}else {
-		sprintf(txt, "RFID %d ERROR WRITE", RFID_COMMAND_WRITEN );
+	if(strcmp(param, "ReadTag") == 0) { //RFID ReadTag : it reads the only 16byte
+		rfid_read_tag();
+	}else if(strcmp(param, "ReadData") == 0) { //Read ReadData: it reads the all
+		rfid_read_data();
+	}else if(strstr(param, "Write")){
+		param += 6;
+		if(rfid_write(param, len - 11)) {
+			sprintf(txt, "RFID %d SUCCESS WRITEN", RFID_COMMAND_WRITEN );
+		}else {
+			sprintf(txt, "RFID %d ERROR WRITE", RFID_COMMAND_WRITEN );
+		}
+		CDC_Transmit_FS(txt, strlen(txt));
 	}
-	CDC_Transmit_FS(txt, strlen(txt));
+
 	return true;
 }
 //M777 F1, F10, F100, F1K,...
-bool ParesM777Command(char* buf, uint8_t len)
+bool ParesM777Command(char* buf, uint32_t len)
 {
 	if(len < 6) return false;
 	char* param = buf + 5; //"M777 F"

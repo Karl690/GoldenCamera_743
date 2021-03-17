@@ -95,10 +95,10 @@
 #define ADC_STATUS_VCP_IDLE				"M777_STATUS_VCP_IDLE"
 #define ADC_STATUS_VCP_BUSY				"M777_STATUS_VCP_BUSY"
 
- void ReceivedVCPMessage(uint8_t* buf, uint16_t len);
- bool ParseCommand(char* buf, uint8_t len);
- bool ParesRfidCommand(char* buf, uint8_t len);
- bool ParesM777Command(char* buf, uint8_t len);
+ void ReceivedVCPMessage(uint8_t* buf, uint32_t len);
+ bool ParseCommand(char* buf, uint32_t len);
+ bool ParesRfidCommand(char* buf, uint32_t len);
+ bool ParesM777Command(char* buf, uint32_t len);
  void ChangeADCSampleRate(uint8_t Code);
  bool GetADCRequestSignalStatus();
 /* USER CODE BEGIN Prototypes */

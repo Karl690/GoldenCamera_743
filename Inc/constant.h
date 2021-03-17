@@ -19,3 +19,5 @@
 
 #define PI 3.141592
 
+#define MAX_BUFFER_SIZE 1024
+

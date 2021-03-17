@@ -122,7 +122,6 @@ int32_t gui_draw_line(uint16_t* gui_buf, uint32_t x1, uint32_t y1, uint32_t x2, 
 			uint16_t yindex = (uint16_t)(y * GUI_WIDTH);
 			gui_buf[yindex + i] = Color;
 		}
-
 	}
 #endif
 	return ret;
