@@ -56,7 +56,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint8_t 	SystemRunMode = RFID_MODE;
+uint8_t 	SystemRunMode = ADC_MODE; //RFID_MODE;//
 SYSTEMINFO 	SystemInfo = {0};
 
 uint16_t 	DCMI_Buf[FRAME_HEIGHT][FRAME_WIDTH];
@@ -66,9 +66,7 @@ bool 		ADC_EnableDrawWave = false;
 float 		ADC_WaveScale = 1.0;
 uint16_t 	ADC_WavePos = 0;
 uint8_t 	ADC1_Buf[ADC_SAMPLE_SIZE + 3] = {0};
-uint8_t 	ADC2_Buf[ADC_SAMPLE_SIZE + 3] = {0};
 uint8_t 	ADC1_DoneFlag = 0;
-uint8_t 	ADC2_DoneFlag = 0;
 uint32_t 	ADC1_SampleRate = 10000;
 uint8_t 	IsRequestSendAdcData = 0;
 
@@ -152,14 +150,18 @@ int main(void)
   {
 	  HAL_Delay(10);
   }
-  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)&DCMI_Buf, FRAME_WIDTH * FRAME_HEIGHT * 2 / 4);
+  if(SystemRunMode == CAMERA_MODE)
+	  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)&DCMI_Buf, FRAME_WIDTH * FRAME_HEIGHT * 2 / 4);
 
 
   ADC1_Buf[0] = 'A';
   ADC1_Buf[1] = 'D';
   ADC1_Buf[2] = 'C';
-  //HAL_ADC_Start_DMA(&hadc1, &ADC1_Buf[3], ADC_SAMPLE_SIZE);
-  HAL_TIM_Base_Start_IT(&htim6);
+  if(SystemRunMode == ADC_MODE){
+	  HAL_ADC_Start_DMA(&hadc1, &ADC1_Buf[3], ADC_SAMPLE_SIZE);
+	  HAL_TIM_Base_Start_IT(&htim6);
+  }
+
   //HAL_TIM_Base_Start_IT(&htim2);
   /* USER CODE END 2 */
 
@@ -185,12 +187,12 @@ int main(void)
 		  }
 		  break;
 	  case ADC_MODE:
-		  if(HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET && (ADC1_DoneFlag || ADC2_DoneFlag))
+		  if(HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET && (ADC1_DoneFlag))
 		  {
 			  gui_reset(GUI_BUF, GUI_COLOR_BACKGROUND);
 			  gui_draw_axis(GUI_BUF, GUI_COLOR_AXIS);
 			  if(ADC1_DoneFlag == 1){ // && ADC_EnableDrawWave) {
-				  gui_draw_wave(GUI_BUF, ADC1_Buf, ADC_WavePos, ADC_WaveScale, GUI_COLOR_ADC_CHANNEL_01);
+				  gui_draw_wave(GUI_BUF, ADC1_Buf+3, ADC_WavePos, ADC_WaveScale, GUI_COLOR_ADC_CHANNEL_01);
 				  ADC1_DoneFlag = 0;
 				  ADC_EnableDrawWave = false;
 			  }
@@ -212,8 +214,6 @@ int main(void)
 }
 
 /**
- *
- *
   * @brief System Clock Configuration
   * @retval None
   */

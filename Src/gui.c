@@ -26,7 +26,7 @@ void gui_draw_axis(uint16_t* gui_buf, uint16_t Color)
 	for(int i = 20; i < GUI_HEIGHT; i += 20)
 		gui_draw_hline(gui_buf, 0, i, GUI_WIDTH, Color);
 	for(int i = 20; i < GUI_WIDTH; i += 20)
-		gui_draw_hline(gui_buf, i, 0, GUI_HEIGHT, Color);
+		gui_draw_vline(gui_buf, i, 0, GUI_HEIGHT, Color);
 }
 int32_t gui_draw_rectangle(uint16_t* gui_buf, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint16_t Color)
 {
@@ -40,25 +40,29 @@ int32_t gui_draw_rectangle(uint16_t* gui_buf, uint32_t x1, uint32_t y1, uint32_t
 void gui_draw_wave(uint16_t* gui_buf, uint8_t* wave_buf, uint16_t pos, float scale, uint16_t Color)
 {
 
-	int16_t x = GUI_WIDTH-1;
-	uint8_t y = 0;
+	float x = GUI_WIDTH-1;
+	float y = 0;
 	uint16_t end_pos = pos + 1;
 	if(end_pos >= GUI_WIDTH) end_pos = 0;
-	uint16_t prev_y = 0;
-	int16_t prev_x = x;
+	uint32_t prev_y = 0;
+	uint32_t prev_x = x;
 	float original_scale = GUI_WIDTH/(float)ADC_SAMPLE_SIZE;
 
+	bool bFirst = true;
 	for(int i = 0; i < ADC_SAMPLE_SIZE; i ++) {
-		y = (uint8_t)(GUI_HEIGHT - (wave_buf[i]) /256.0 * GUI_HEIGHT) ;
-		x = i * original_scale * 1;
-		if(i != 0) gui_draw_line(gui_buf, prev_x, prev_y, x, y, Color);
+		y = (uint32_t)(GUI_HEIGHT - wave_buf[i] /256.0 * GUI_HEIGHT) ; //GUI_HEIGHT -
+		x = (uint32_t)(i * original_scale);
+
+		if(i > 0) {
+			gui_draw_line(gui_buf, prev_x, prev_y, x, y, Color);
+		}
 		prev_y = y;
 		prev_x = x;
 	}
 }
 
 
-int32_t gui_draw_hline(uint16_t* gui_buf, uint32_t Xpos, uint32_t Ypos, uint32_t Length, uint16_t Color)
+int32_t gui_draw_vline(uint16_t* gui_buf, uint32_t Xpos, uint32_t Ypos, uint32_t Length, uint16_t Color)
 {
   int32_t ret = GUI_OK;
   uint32_t counter;
@@ -74,7 +78,7 @@ int32_t gui_draw_hline(uint16_t* gui_buf, uint32_t Xpos, uint32_t Ypos, uint32_t
 }
 
 
-int32_t gui_draw_vline(uint16_t* gui_buf, uint32_t Xpos, uint32_t Ypos, uint32_t Length, uint16_t Color)
+int32_t gui_draw_hline(uint16_t* gui_buf, uint32_t Xpos, uint32_t Ypos, uint32_t Length, uint16_t Color)
 {
   int32_t ret = GUI_OK;
   uint32_t counter;
@@ -96,17 +100,18 @@ int32_t gui_draw_line(uint16_t* gui_buf, uint32_t x1, uint32_t y1, uint32_t x2, 
 	float m = 0;
 	if((x2 - x1 == 0) && (y2 - y1 == 0)) {
 		if(x2 >= 0 && x2 < GUI_WIDTH && y2 >= 0 && y2 < GUI_HEIGHT) {
-			gui_buf[y2 * GUI_WIDTH + x2] = Color;
+			gui_buf[(int)(y2 * GUI_WIDTH + x2)] = Color;
 		}
 	}
 	if(x2 - x1 == 0 ) {
 		gui_draw_vline(gui_buf, x1, _MIN(y1, y2), _ABS((int32_t)(y1 - y2)), Color);
 		return ret;
-	}else if(y2 - y1 == 0) {
-		gui_draw_hline(gui_buf, _MIN(x1, x2), y1, _ABS((int32_t)(x1 - x2)), Color);
-		return ret;
 	}
-#ifndef _NN_
+	else if(y2 - y1 == 0) {
+		//gui_draw_hline(gui_buf, _MIN(x1, x2), y1, _ABS((int32_t)(x1 - x2)), Color);
+		//return ret;
+	}
+//#ifndef _NN_
 	m = (y2- y1) /(float)(x2 - x1);
 	uint32_t xstart, xend;
 	uint16_t y = 0;
@@ -117,13 +122,13 @@ int32_t gui_draw_line(uint16_t* gui_buf, uint32_t x1, uint32_t y1, uint32_t x2, 
 	{
 		if(i < 0) break;
 		if(i >= GUI_WIDTH) break;
-		y = (uint16_t)((m * (i - x1) + y1) + 0.5);
+		y = (uint16_t)((m * (i - x1) + y1));
 		if(y >= 0 && y < GUI_HEIGHT) {
 			uint16_t yindex = (uint16_t)(y * GUI_WIDTH);
 			gui_buf[yindex + i] = Color;
 		}
 	}
-#endif
+//#endif
 	return ret;
 }
 
