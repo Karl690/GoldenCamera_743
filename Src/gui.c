@@ -37,7 +37,7 @@ int32_t gui_draw_rectangle(uint16_t* gui_buf, uint32_t x1, uint32_t y1, uint32_t
 	res &= gui_draw_line(gui_buf, x2, y1, x1, y1, Color);
 	return res;
 }
-void gui_draw_wave(uint16_t* gui_buf, uint8_t* wave_buf, uint16_t pos, float scale, uint16_t Color)
+void gui_draw_wave(uint16_t* gui_buf, uint8_t* wave_buf, uint16_t buf_size, uint16_t pos, float scale, uint16_t Color)
 {
 
 	float x = GUI_WIDTH-1;
@@ -46,10 +46,10 @@ void gui_draw_wave(uint16_t* gui_buf, uint8_t* wave_buf, uint16_t pos, float sca
 	if(end_pos >= GUI_WIDTH) end_pos = 0;
 	uint32_t prev_y = 0;
 	uint32_t prev_x = x;
-	float original_scale = GUI_WIDTH/(float)ADC_SAMPLE_SIZE;
+	float original_scale = GUI_WIDTH/(float)buf_size;
 
 	bool bFirst = true;
-	for(int i = 0; i < ADC_SAMPLE_SIZE; i ++) {
+	for(int i = 0; i < buf_size; i ++) {
 		y = (uint32_t)(GUI_HEIGHT - wave_buf[i] /256.0 * GUI_HEIGHT) ; //GUI_HEIGHT -
 		x = (uint32_t)(i * original_scale);
 

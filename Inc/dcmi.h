@@ -34,13 +34,16 @@ extern "C" {
 extern DCMI_HandleTypeDef hdcmi;
 
 /* USER CODE BEGIN Private defines */
-
+#define DCMI_FRAME_WIDTH 160
+#define DCMI_FRAME_HEIGHT 120
+extern DCMI_HandleTypeDef hdcmi;
+extern uint16_t 	DCMI_Buf[DCMI_FRAME_HEIGHT][DCMI_FRAME_WIDTH];
 /* USER CODE END Private defines */
 
 void MX_DCMI_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void dcmi_display_camera();
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

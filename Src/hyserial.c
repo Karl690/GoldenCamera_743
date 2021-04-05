@@ -4,6 +4,7 @@
 #include "systeminfo.h"
 #include <string.h>
 #include "rfid.h"
+#include "adc.h"
 #define HYCOMMAND_NUM  3
 enum {M777, ADC, RFID};
 char* hycommand[HYCOMMAND_NUM] = {"M777", "ADC", "RFID"};
@@ -26,7 +27,7 @@ void ReceivedVCPMessage(uint8_t* buf, uint32_t len)
 		case ADC_SAMPLERATE_100KHZ:
 		case ADC_SAMPLERATE_1MHZ:
 		case ADC_SAMPLERATE_10MHZ:
-			ChangeADCSampleRate(buf[0]);
+			adc_change_samplerate(buf[0]);
 			break;
 		}
 	}else {
@@ -45,10 +46,9 @@ void ReceivedVCPMessage(uint8_t* buf, uint32_t len)
 				memset(serial_buf, 0, MAX_BUFFER_SIZE);
 			}
 		}
-
 		//CDC_Transmit_FS(buf, len);
 	}
-	CDC_Transmit_FS(ASCII_ACK, 1);
+	//CDC_Transmit_FS(ASCII_ACK, 1);
 }
 
 void PingReply (void)
@@ -66,6 +66,8 @@ void SendRevisionString(char *reason){
 
 bool ParseCommand(char* buf, uint32_t len)
 {
+
+	//return true;
 	char* command = NULL;
 	uint8_t CMD_ID = -1;
 	for(int i = 0; i < HYCOMMAND_NUM; i ++) {
@@ -82,6 +84,7 @@ bool ParseCommand(char* buf, uint32_t len)
 		ParesM777Command(buf, len);
 		break;
 	case ADC:
+		ParseADCCommand(buf, len);
 		break;
 	case RFID:
 		ParesRfidCommand(buf, len);
@@ -101,17 +104,46 @@ bool ParesRfidCommand(char* buf, uint32_t len)
 		rfid_read_data();
 	}else if(strstr(param, "Write")){
 		param += 6;
-		if(rfid_write(param, len - 11)) {
-			sprintf(txt, "RFID %d SUCCESS WRITEN", RFID_COMMAND_WRITEN );
-		}else {
-			sprintf(txt, "RFID %d ERROR WRITE", RFID_COMMAND_WRITEN );
-		}
-		CDC_Transmit_FS(txt, strlen(txt));
+		rfid_write(param, len - 11);
 	}
 
 	return true;
 }
-//M777 F1, F10, F100, F1K,...
+
+bool ParseADCCommand(char* buf, uint32_t len)
+{
+	if(len < 4) return false;
+	char* param = buf + 4; //"ADC F"
+	len -= 4;
+		param[len] = '\0';
+		extern uint8_t IsRequestSendAdcData;
+		char sendbuf[100] = {0};
+		if(strcmp(param, "RequestSignal") == 0) {
+			IsRequestSendAdcData = true;
+		}else if(strcmp(param, "NoRequestSignal") == 0) {
+			IsRequestSendAdcData = false;
+		}else if(strcmp(param, "F1") == 0) {
+			adc_change_samplerate(ADC_SAMPLERATE_1HZ);
+		}else if(strcmp(param, "F10") == 0) {
+			adc_change_samplerate(ADC_SAMPLERATE_10HZ);
+		}else if(strcmp(param, "F100") == 0) {
+			adc_change_samplerate(ADC_SAMPLERATE_100HZ);
+		}else if(strcmp(param, "F1K") == 0) {
+			adc_change_samplerate(ADC_SAMPLERATE_1KHZ);
+		}else if(strcmp(param, "F1K") == 0) {
+			adc_change_samplerate(ADC_SAMPLERATE_10KHZ);
+		}else if(strcmp(param, "F10K") == 0) {
+			adc_change_samplerate(ADC_SAMPLERATE_10KHZ);
+		}else if(strcmp(param, "F100K") == 0) {
+			adc_change_samplerate(ADC_SAMPLERATE_100KHZ);
+		}else if(strcmp(param, "F1M") == 0) {
+			adc_change_samplerate(ADC_SAMPLERATE_1MHZ);
+		}else if(strcmp(param, "F10M") == 0) {
+			adc_change_samplerate(ADC_SAMPLERATE_10MHZ);
+		}
+		return true;
+}
+
 bool ParesM777Command(char* buf, uint32_t len)
 {
 	if(len < 6) return false;
@@ -121,38 +153,12 @@ bool ParesM777Command(char* buf, uint32_t len)
 	param[len] = '\0';
 	extern uint8_t IsRequestSendAdcData;
 	char sendbuf[100] = {0};
-	if(strcmp(param, "Stop") == 0) {
-		ADC_Stop();
-	}else if(strcmp(param, "Start") == 0) {
-		ADC_Start();
-	}else if(strcmp(param, "Status") == 0) {
-		SendAdcStatus();
+	if(strcmp(param, "Status") == 0) {
+
 	}else if(strcmp(param, "Connect") == 0) {
-		SendAdcStatus();
-	}else if(strcmp(param, "RequestSignal") == 0) {
-		IsRequestSendAdcData = true;
-		SendAdcStatus();
-	}else if(strcmp(param, "NoRequestSignal") == 0) {
-		IsRequestSendAdcData = false;
-		SendAdcStatus();
-	}else if(strcmp(param, "F1") == 0) {
-		ChangeADCSampleRate(ADC_SAMPLERATE_1HZ);
-	}else if(strcmp(param, "F10") == 0) {
-		ChangeADCSampleRate(ADC_SAMPLERATE_10HZ);
-	}else if(strcmp(param, "F100") == 0) {
-		ChangeADCSampleRate(ADC_SAMPLERATE_100HZ);
-	}else if(strcmp(param, "F1K") == 0) {
-		ChangeADCSampleRate(ADC_SAMPLERATE_1KHZ);
-	}else if(strcmp(param, "F1K") == 0) {
-		ChangeADCSampleRate(ADC_SAMPLERATE_10KHZ);
-	}else if(strcmp(param, "F10K") == 0) {
-		ChangeADCSampleRate(ADC_SAMPLERATE_10KHZ);
-	}else if(strcmp(param, "F100K") == 0) {
-		ChangeADCSampleRate(ADC_SAMPLERATE_100KHZ);
-	}else if(strcmp(param, "F1M") == 0) {
-		ChangeADCSampleRate(ADC_SAMPLERATE_1MHZ);
-	}else if(strcmp(param, "F10M") == 0) {
-		ChangeADCSampleRate(ADC_SAMPLERATE_10MHZ);
+		rfid_init();
+	}else if(strcmp(param, "Close") == 0) {
+
 	}
 	return true;
 }
@@ -161,94 +167,7 @@ bool GetADCRequestSignalStatus() {
 	extern uint8_t IsRequestSendAdcData;
 	return IsRequestSendAdcData;
 }
-void ChangeADCSampleRate(uint8_t Code)
-{
-	extern ADC_HandleTypeDef hadc1;
-	extern TIM_HandleTypeDef htim6;
-	extern uint8_t ADC1_Buf[ADC_SAMPLE_SIZE];
-	HAL_ADC_Stop_DMA(&hadc1);
-	HAL_TIM_Base_Stop(&htim6);
-	uint32_t prescaler = htim6.Init.Prescaler;
-	uint32_t period = htim6.Init.Period;
 
-	switch(Code)
-	{
-	case ADC_SAMPLERATE_1HZ:
-		prescaler = 10000 - 1;
-		period = 10000-1;
-		break;
-	case ADC_SAMPLERATE_10HZ:
-		prescaler = 10000-1;
-		period = 1000-1;
-		break;
-	case ADC_SAMPLERATE_100HZ:
-		prescaler = 10000-1;
-		period = 100-1;
-		break;
-	case ADC_SAMPLERATE_1KHZ:
-		prescaler = 10000-1;
-		period = 10-1;
-		break;
-	case ADC_SAMPLERATE_10KHZ:
-		prescaler = 1000-1;
-		period = 10-1;
-		break;
-	case ADC_SAMPLERATE_100KHZ:
-		prescaler = 100-1;
-		period = 10-1;
-		break;
-	case ADC_SAMPLERATE_1MHZ:
-		prescaler = 10-1;
-		period = 10-1;
-		break;
-	case ADC_SAMPLERATE_10MHZ:
-		prescaler = 0;
-		period = 10-1;
-		break;
-	}
-
-	htim6.Init.Prescaler = prescaler;
-	htim6.Init.Period = period;
-	if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
-	{
-	    Error_Handler();
-	}
-
-	SendAdcStatus();
-
-	HAL_ADC_Start_DMA(&hadc1, &ADC1_Buf[3], ADC_SAMPLE_SIZE);
-	HAL_TIM_Base_Start_IT(&htim6);
-}
-void ADC_Start()
-{
-	extern ADC_HandleTypeDef hadc1;
-	extern TIM_HandleTypeDef htim6;
-	extern uint8_t ADC1_Buf[ADC_SAMPLE_SIZE];
-	extern uint8_t IsRequestSendAdcData;
-	HAL_ADC_Start_DMA(&hadc1, &ADC1_Buf[3], ADC_SAMPLE_SIZE);
-	HAL_TIM_Base_Start(&htim6);
-
-	SendVcpData(ADC_STATUS_VCP_BUSY, strlen(ADC_STATUS_VCP_BUSY));
-	IsRequestSendAdcData = true;
-}
-
-void ADC_Stop()
-{
-	extern ADC_HandleTypeDef hadc1;
-	extern TIM_HandleTypeDef htim6;
-	extern uint8_t IsRequestSendAdcData;
-	HAL_ADC_Stop_DMA(&hadc1);
-	HAL_TIM_Base_Stop(&htim6);
-	SendVcpData(ADC_STATUS_VCP_IDLE, strlen(ADC_STATUS_VCP_IDLE));
-	IsRequestSendAdcData = false;
-}
-
-void SendAdcStatus()
-{
-	char buf[50] = {0};
-	sprintf(buf, "%s %d", GetADCRequestSignalStatus()? ADC_STATUS_VCP_BUSY: ADC_STATUS_VCP_IDLE, GetAdcFrequence() );
-	SendVcpData(buf, strlen(buf));
-}
 
 void SendVcpData(char* text, uint8_t len)
 {

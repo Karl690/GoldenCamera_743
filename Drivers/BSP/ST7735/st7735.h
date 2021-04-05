@@ -188,6 +188,9 @@ typedef struct
 /** @defgroup ST7735_Exported_Functions Exported Functions
   * @{
   */ 
+
+ST7735_Ctx_t ST7735Ctx;
+
 int32_t ST7735_RegisterBusIO (ST7735_Object_t *pObj, ST7735_IO_t *pIO);
 int32_t ST7735_Init(ST7735_Object_t *pObj, uint32_t ColorCoding, ST7735_Ctx_t *ST7735_driver);
 int32_t ST7735_DeInit(ST7735_Object_t *pObj);

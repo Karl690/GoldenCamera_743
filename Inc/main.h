@@ -38,7 +38,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+extern uint8_t 	SystemRunMode;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

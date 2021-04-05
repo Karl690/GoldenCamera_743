@@ -28,7 +28,7 @@ extern 	uint16_t GUI_BUF[GUI_HEIGHT][GUI_WIDTH];
 
 void gui_reset(uint16_t* lcd_buf, uint16_t Color);
 void gui_draw_axis(uint16_t* lcd_buf, uint16_t Color);
-void gui_draw_wave(uint16_t* lcd_buf, uint8_t* wave_buf, uint16_t pos, float scale, uint16_t Color);
+void gui_draw_wave(uint16_t* gui_buf, uint8_t* wave_buf, uint16_t buf_size, uint16_t pos, float scale, uint16_t Color);
 int32_t gui_draw_vline(uint16_t* lcd_buf, uint32_t Xpos, uint32_t Ypos, uint32_t Length, uint16_t Color);
 int32_t gui_draw_hline(uint16_t* lcd_buf, uint32_t Xpos, uint32_t Ypos, uint32_t Length, uint16_t Color);
 int32_t gui_draw_line(uint16_t* gui_buf, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint16_t Color);

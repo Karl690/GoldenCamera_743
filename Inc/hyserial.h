@@ -69,14 +69,6 @@
 #define STRING_DELIM                 '"'
 
 
-#define ADC_SAMPLERATE_1HZ			0xF0
-#define ADC_SAMPLERATE_10HZ			0xF1
-#define ADC_SAMPLERATE_100HZ		0xF2
- #define ADC_SAMPLERATE_1KHZ		0xF3
-#define ADC_SAMPLERATE_10KHZ		0xF4
-#define ADC_SAMPLERATE_100KHZ		0xF5
-#define ADC_SAMPLERATE_1MHZ			0xF6
-#define ADC_SAMPLERATE_10MHZ		0xF7
 
 
 #define RESPOND_CHAR				0x0F
@@ -92,13 +84,14 @@
 #define CMD_RESPOND_ERROR				"ERR"
 
 
-#define ADC_STATUS_VCP_IDLE				"M777_STATUS_VCP_IDLE"
-#define ADC_STATUS_VCP_BUSY				"M777_STATUS_VCP_BUSY"
 
  void ReceivedVCPMessage(uint8_t* buf, uint32_t len);
  bool ParseCommand(char* buf, uint32_t len);
- bool ParesRfidCommand(char* buf, uint32_t len);
+
  bool ParesM777Command(char* buf, uint32_t len);
+ bool ParseADCCommand(char* buf, uint32_t len);
+ bool ParesRfidCommand(char* buf, uint32_t len);
+
  void ChangeADCSampleRate(uint8_t Code);
  bool GetADCRequestSignalStatus();
 /* USER CODE BEGIN Prototypes */

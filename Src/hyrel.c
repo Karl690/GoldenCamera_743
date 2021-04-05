@@ -9,6 +9,7 @@
 #include "hyrel.h"
 #include "constant.h"
 #include <math.h>
+#include <stdbool.h>
 byte 						Tick1000hzCounter = 0;
 byte 						Tick100hzCounter = 0;
 byte 						Tick10hzCounter = 0;
@@ -76,7 +77,7 @@ const PFUNC F1HZ[NUM_1HZ] =
 		Spare,
 		Spare,
 		Spare,
-		RFID_Check,
+		Spare,
 		Spare,
 		Spare,//loop_1Hz_simple_work,   // keep as last call in this array
 };
@@ -115,7 +116,7 @@ void TestVCP(void){
 }
 void RFID_Check(void)
 {
-	//rfid_process_scan();
+	rfid_tag_detect();
 }
 
 //This function is called thousands of times per second as a callback function of SysTick.

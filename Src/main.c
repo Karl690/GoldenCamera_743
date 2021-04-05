@@ -56,19 +56,10 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint8_t 	SystemRunMode = ADC_MODE; //RFID_MODE;//
+uint8_t 	SystemRunMode = ADC_MODE;//CAMERA_MODE;//ADC_MODE; //RFID_MODE;//
 SYSTEMINFO 	SystemInfo = {0};
 
-uint16_t 	DCMI_Buf[FRAME_HEIGHT][FRAME_WIDTH];
-uint32_t 	Camera_FPS=0;
-uint32_t 	DCMI_FrameIsReady;
-bool 		ADC_EnableDrawWave = false;
-float 		ADC_WaveScale = 1.0;
-uint16_t 	ADC_WavePos = 0;
-uint8_t 	ADC1_Buf[ADC_SAMPLE_SIZE + 3] = {0};
-uint8_t 	ADC1_DoneFlag = 0;
-uint32_t 	ADC1_SampleRate = 10000;
-uint8_t 	IsRequestSendAdcData = 0;
+
 
 /* USER CODE END PV */
 
@@ -133,11 +124,11 @@ int main(void)
   SystemInfo.mcuVersion = HAL_GetHalVersion();
   SystemInfo.mcuDeviceID = HAL_GetDEVID();
   SystemInfo.mcuRevisionID = HAL_GetREVID();
-  ADC1_SampleRate  =  GetAdcFrequence();
+
   LCD_Test();
-  rfid_init();
 
   HAL_TIM_Base_Start_IT(&htim2);
+  HAL_TIM_Base_Start_IT(&htim7);
 
   Camera_Init_Device(&hi2c1, FRAMESIZE_QQVGA);
   sprintf((char *)&text, "SW %d.%03d   ", SOFTWARE_MAJOR_REVISION, SOFTWARE_MINOR_REVISION);
@@ -145,22 +136,16 @@ int main(void)
 
   sprintf((char *)&text, "Press K1 to Run");
   LCD_ShowString(50, 58, ST7735Ctx.Width, 16, 12, text);
-
+#ifdef _MANUAL_
   while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET)
   {
 	  HAL_Delay(10);
   }
-  if(SystemRunMode == CAMERA_MODE)
-	  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)&DCMI_Buf, FRAME_WIDTH * FRAME_HEIGHT * 2 / 4);
+#endif
+  dcmi_init();
+  rfid_init();
+  adc_init();
 
-
-  ADC1_Buf[0] = 'A';
-  ADC1_Buf[1] = 'D';
-  ADC1_Buf[2] = 'C';
-  if(SystemRunMode == ADC_MODE){
-	  HAL_ADC_Start_DMA(&hadc1, &ADC1_Buf[3], ADC_SAMPLE_SIZE);
-	  HAL_TIM_Base_Start_IT(&htim6);
-  }
 
   //HAL_TIM_Base_Start_IT(&htim2);
   /* USER CODE END 2 */
@@ -168,47 +153,19 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-
-  ST7735_FillRect(&st7735_pObj, 0, 0, ST7735Ctx.Width, 80, 0x000);
   while (1)
   {
+	  switch(SystemRunMode) {
+	  case CAMERA_MODE:
+		  break;
+	  case ADC_MODE:
+		  adc_display_wave();
+		  break;
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  switch(SystemRunMode){
-	  case CAMERA_MODE:
-		  if (DCMI_FrameIsReady)
-		  {
-			  DCMI_FrameIsReady = 0;
-			  //CDx_Hyrellogo();
-			  ST7735_FillRGBRect(&st7735_pObj,0,0,(uint8_t *)&DCMI_Buf[20][0], ST7735Ctx.Width, 80);
-			  //LCD_ShowString(5,5,60,16,12,text);
-			  HAL_Delay(10);
-		  }
-		  break;
-	  case ADC_MODE:
-		  if(HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET && (ADC1_DoneFlag))
-		  {
-			  gui_reset(GUI_BUF, GUI_COLOR_BACKGROUND);
-			  gui_draw_axis(GUI_BUF, GUI_COLOR_AXIS);
-			  if(ADC1_DoneFlag == 1){ // && ADC_EnableDrawWave) {
-				  gui_draw_wave(GUI_BUF, ADC1_Buf+3, ADC_WavePos, ADC_WaveScale, GUI_COLOR_ADC_CHANNEL_01);
-				  ADC1_DoneFlag = 0;
-				  ADC_EnableDrawWave = false;
-			  }
-
-			  sprintf(text, "SR: %dHz", ADC1_SampleRate);
-			  gui_draw_string(GUI_BUF, 10, 10, 100, 16, 12, text);
-			  ST7735_FillRGBRect(&st7735_pObj,0,0,(uint8_t *)&GUI_BUF[0][0], ST7735Ctx.Width, ST7735Ctx.Height);
-			  ADC1_SampleRate = GetAdcFrequence(); //SystemCoreClock / (float)(htim6.Init.Prescaler * htim6.Init.Period) ;
-			  //LCD_ShowString(10,10, ST7735Ctx.Width, 16, 12, text);
-		  }
-		  break;
-	  case RFID_MODE:
-	  	  rfid_process_scan();
-	  	  break;
-	  }
-	  HAL_Delay(1);
+	  HAL_Delay(30);
   }
   /* USER CODE END 3 */
 }
@@ -289,10 +246,9 @@ void SystemClock_Config(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef  *htim)
 {
-    if (htim->Instance == TIM2) //check if the interrupt comes from TIM7
+    if (htim->Instance == TIM7) //check if the interrupt comes from TIM7
 	{
-    	HAL_GPIO_TogglePin(PE3_HeartbeatLed_GPIO_Port, PE3_HeartbeatLed_Pin);
-    	//ADC_EnableDrawWave = true;
+    	rfid_scan_process(RFID_Request);
 	}
     else if (htim->Instance == TIM16)
 	{
@@ -300,42 +256,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef  *htim)
 	}
 }
 
-
-void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
-{
-	static uint32_t count = 0,tick = 0;
-	if(HAL_GetTick() - tick >= 1000)
-	{
-		tick = HAL_GetTick();
-		Camera_FPS = count;
-		count = 0;
-	}
-	count ++;
-	DCMI_FrameIsReady = 1;
-}
-
-
-uint32_t g_timerTick = 0;
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
-	if(IsRequestSendAdcData)
-	{
-		uint32_t threshhold = GetAdcFrequence();
-		threshhold /= 10000 * 5;
-		if(threshhold < g_timerTick)
-		{
-			g_timerTick = 0;
-			CDC_Transmit_FS(ADC1_Buf, ADC_SAMPLE_SIZE+3);
-		}
-		g_timerTick ++;
-	}
-	//HAL_GPIO_TogglePin(PE3_HeartbeatLed_GPIO_Port, PE3_HeartbeatLed_Pin);
-	if(hadc == &hadc1) ADC1_DoneFlag = 1;
-#ifdef _HAS_ADC2_
-	else if(hadc == &hadc2) ADC2_DoneFlag = 1;
-#endif
-
-}
 
 /* USER CODE END 4 */
 

@@ -21,7 +21,10 @@
 #include "dcmi.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "lcd.h"
+uint16_t 	DCMI_Buf[DCMI_FRAME_HEIGHT][DCMI_FRAME_WIDTH];
+uint32_t 	Camera_FPS=0;
+uint32_t 	DCMI_FrameIsReady;
 /* USER CODE END 0 */
 
 DCMI_HandleTypeDef hdcmi;
@@ -191,6 +194,30 @@ void HAL_DCMI_MspDeInit(DCMI_HandleTypeDef* dcmiHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void dcmi_init(){
+	HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)&DCMI_Buf, DCMI_FRAME_WIDTH * DCMI_FRAME_HEIGHT * 2 / 4);
+}
+void dcmi_display_camera()
+{
+	if (DCMI_FrameIsReady)
+	{
+		DCMI_FrameIsReady = 0;
+		ST7735_FillRGBRect(&st7735_pObj,0,0,(uint8_t *)&DCMI_Buf[20][0], ST7735Ctx.Width, 80);
+	}
+}
+
+void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
+{
+	static uint32_t count = 0,tick = 0;
+	if(HAL_GetTick() - tick >= 1000)
+	{
+		tick = HAL_GetTick();
+		Camera_FPS = count;
+		count = 0;
+	}
+	count ++;
+	DCMI_FrameIsReady = 1;
+}
 
 /* USER CODE END 1 */
 
