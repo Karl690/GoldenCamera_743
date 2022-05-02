@@ -189,7 +189,7 @@ typedef struct
   * @{
   */ 
 
-ST7735_Ctx_t ST7735Ctx;
+extern ST7735_Ctx_t ST7735Ctx;
 
 int32_t ST7735_RegisterBusIO (ST7735_Object_t *pObj, ST7735_IO_t *pIO);
 int32_t ST7735_Init(ST7735_Object_t *pObj, uint32_t ColorCoding, ST7735_Ctx_t *ST7735_driver);
