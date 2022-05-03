@@ -2,14 +2,18 @@
  * function.h
  *
  *  Created on: Jan 6, 2021
- *      Author: falcon
+ *      Author: lvana
  */
 
 #ifndef SRC_HYREL_H_
 #define SRC_HYREL_H_
 
+#define REVISION_NUM		"1.000"
+#define REVISION_DATE		"5/3/2022"
+
 typedef uint8_t byte;
 typedef void (*PFUNC)(void);
+
 
 #define NUM_1000HZ              8
 #define NUM_100HZ               10      // must remain 10 otherwise loop timing will not be correct
